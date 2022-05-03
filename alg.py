@@ -1,5 +1,7 @@
 import cv2 as cv
 import numpy as np
+import hist
+import hist_filter as hf
 
 class IAlgorithm:
     def _capture(self): pass
@@ -121,3 +123,16 @@ class ReferenceAlgorithm(BaseHsvBlobAlgorithm):
         _, self.img_s_thresh = cv.threshold(self.img_prep_s, self.s_thresh_level, 255, cv.THRESH_BINARY)
         _, self.img_v_thresh = cv.threshold(self.img_prep_v, self.v_thresh_level, 255, cv.THRESH_BINARY_INV)
         self.img_h_thresh = np.full_like(self.img_prep_h, 255)
+
+class MedianBasedThresholdingAlgorithm(BaseHsvBlobAlgorithm):
+
+    def _thresholding(self):
+        super()._thresholding()
+        (h_hist, s_hist, v_hist) = hist.get_histogram(self.img_prep_hsv, color="hsv", normalize=True)
+        s_thresh, s_thresh_val = hf.median_thresh(s_hist)
+        v_thresh, v_thresh_val = hf.median_thresh(v_hist)
+
+        _, self.img_s_thresh = cv.threshold(self.img_prep_s, s_thresh, 255, cv.THRESH_BINARY)
+        _, self.img_v_thresh = cv.threshold(self.img_prep_v, v_thresh, 255, cv.THRESH_BINARY_INV)
+        self.img_h_thresh = np.full_like(self.img_prep_h, 255)
+
