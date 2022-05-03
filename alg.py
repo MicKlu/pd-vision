@@ -136,3 +136,24 @@ class MedianBasedThresholdingAlgorithm(BaseHsvBlobAlgorithm):
         _, self.img_v_thresh = cv.threshold(self.img_prep_v, v_thresh, 255, cv.THRESH_BINARY_INV)
         self.img_h_thresh = np.full_like(self.img_prep_h, 255)
 
+class MedianBasedFilteringAlgorithm(BaseHsvBlobAlgorithm):
+
+    def _thresholding(self):
+        super()._thresholding()
+        (h_hist, s_hist, v_hist) = hist.get_histogram(self.img_prep_hsv, color="hsv", normalize=True)
+        s_thresh, s_thresh_val = hf.median_thresh(s_hist)
+        v_thresh, v_thresh_val = hf.median_thresh(v_hist)
+
+        s_filter = []
+        v_filter = []
+
+        for pix_val in range(0, 256):
+            if s_hist[0][pix_val] >= s_thresh_val:
+                s_filter.append(pix_val)
+
+            if v_hist[0][pix_val] >= v_thresh_val:
+                v_filter.append(pix_val)
+
+        self.img_s_thresh = np.where(np.isin(self.img_prep_s, s_filter), 0, 255).astype("uint8")
+        self.img_v_thresh = np.where(np.isin(self.img_prep_v, v_filter), 0, 255).astype("uint8")
+        self.img_h_thresh = np.full_like(self.img_prep_h, 255)

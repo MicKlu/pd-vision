@@ -1,12 +1,13 @@
 #!/usr/bin/python3
 
-import alg
+import alg as a
 import cv2 as cv
 import numpy as np
 from matplotlib import pyplot as plt
 import os
+import hist
 
-def plot_results(alg: alg.BaseHsvBlobAlgorithm, backend="matplotlib"):
+def plot_results(alg: a.BaseHsvBlobAlgorithm, backend="matplotlib"):
 
     img_output = np.copy(alg.img_original_bgr)
     cv.drawContours(img_output, alg.blobs, -1, (0, 0, 255), 3)
@@ -102,7 +103,7 @@ if __name__ == "__main__":
     s_threshs = [38, 86, 39, 159, 40, 65, 64, 30, 77, 78, 39, 52, 123, 79]
     v_threshs = [104, 156, 100, 72, 93, 64, 37, 37, 36, 36, 99, 94, 102, 31]
 
-    ref_alg = alg.ReferenceAlgorithm(img_path, s_threshs[img_index], v_threshs[img_index])
+    ref_alg = a.ReferenceAlgorithm(img_path, s_threshs[img_index], v_threshs[img_index])
     count = ref_alg.count()
 
     print("### Reference algorithm ###")
@@ -112,11 +113,27 @@ if __name__ == "__main__":
     # plot_results(ref_alg, backend="opencv")
 
     ### Median-based thresholding algorithm
-    alg = alg.MedianBasedThresholdingAlgorithm(img_path)
+    alg = a.MedianBasedThresholdingAlgorithm(img_path)
     count = alg.count()
 
     print("### Median-based thresholding algorithm ###")
     print(f"All blobs: {len(alg.blobs)}")
     print(f"Valid blobs / Counted objects: {count}\n")
 
+    # plot_results(alg, backend="opencv")
+
+    ### Median-based filtering algorithm
+    alg = a.MedianBasedFilteringAlgorithm(img_path)
+    count = alg.count()
+
+    print("### Median-based filtering algorithm ###")
+    print(f"All blobs: {len(alg.blobs)}")
+    print(f"Valid blobs / Counted objects: {count}\n")
+
     plot_results(alg, backend="opencv")
+
+    h = alg.img_prep_h
+    s = cv.bitwise_and(alg.img_prep_s, alg.img_s_thresh)
+    v = cv.bitwise_and(alg.img_prep_v, alg.img_v_thresh)
+
+    hist.show_histogram(cv.merge((h,s,v)), color="hsv")
