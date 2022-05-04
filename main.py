@@ -130,6 +130,26 @@ if __name__ == "__main__":
     print(f"All blobs: {len(alg.blobs)}")
     print(f"Valid blobs / Counted objects: {count}\n")
 
+    # plot_results(alg, backend="opencv")
+
+    ### Median-based thresholding OR algorithm
+    alg = a.MedianBasedThresholdingORAlgorithm(img_path)
+    count = alg.count()
+
+    print("### Median-based thresholding OR algorithm ###")
+    print(f"All blobs: {len(alg.blobs)}")
+    print(f"Valid blobs / Counted objects: {count}\n")
+
+    # plot_results(alg, backend="opencv")
+
+    ### Median-based filtering OR algorithm
+    alg = a.MedianBasedFilteringORAlgorithm(img_path)
+    count = alg.count()
+
+    print("### Median-based filtering OR algorithm ###")
+    print(f"All blobs: {len(alg.blobs)}")
+    print(f"Valid blobs / Counted objects: {count}\n")
+
     plot_results(alg, backend="opencv")
 
     h = alg.img_prep_h

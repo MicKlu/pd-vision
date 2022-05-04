@@ -41,21 +41,21 @@ class BaseBlobAlgorithm(BaseAlgorithm):
     def _morphology(self): pass
     def _extraction(self): pass
 
-    def _opening_closing(self, img, open_ksize: tuple = (2, 2), close_ksize: tuple = (16, 16)):
+    def _opening_closing(self, img, open_ksize: tuple = (2, 2), close_ksize: tuple = (16, 16), open_iterations=1, close_iterations=1):
         kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, open_ksize)
-        img_opened = cv.morphologyEx(img, cv.MORPH_OPEN, kernel)
+        img_opened = cv.morphologyEx(img, cv.MORPH_OPEN, kernel, iterations=open_iterations)
 
         kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, close_ksize)
-        img_closed = cv.morphologyEx(img_opened, cv.MORPH_CLOSE, kernel)
+        img_closed = cv.morphologyEx(img_opened, cv.MORPH_CLOSE, kernel, iterations=close_iterations)
 
         return img_closed
     
-    def _closing_opening(self, img, close_ksize: tuple = (16, 16), open_ksize: tuple = (5, 5)):
+    def _closing_opening(self, img, close_ksize: tuple = (16, 16), open_ksize: tuple = (5, 5), close_iterations=1, open_iterations=1):
         kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, close_ksize)
-        img_closed = cv.morphologyEx(img, cv.MORPH_CLOSE, kernel)
+        img_closed = cv.morphologyEx(img, cv.MORPH_CLOSE, kernel, iterations=close_iterations)
 
         kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, open_ksize)
-        img_opened = cv.morphologyEx(img_closed, cv.MORPH_OPEN, kernel)
+        img_opened = cv.morphologyEx(img_closed, cv.MORPH_OPEN, kernel, iterations=open_iterations)
 
         return img_opened
 
@@ -129,8 +129,8 @@ class MedianBasedThresholdingAlgorithm(BaseHsvBlobAlgorithm):
     def _thresholding(self):
         super()._thresholding()
         (h_hist, s_hist, v_hist) = hist.get_histogram(self.img_prep_hsv, color="hsv", normalize=True)
-        s_thresh, s_thresh_val = hf.median_thresh(s_hist)
-        v_thresh, v_thresh_val = hf.median_thresh(v_hist)
+        s_thresh, _ = hf.median_thresh(s_hist)
+        v_thresh, _ = hf.median_thresh(v_hist)
 
         _, self.img_s_thresh = cv.threshold(self.img_prep_s, s_thresh, 255, cv.THRESH_BINARY)
         _, self.img_v_thresh = cv.threshold(self.img_prep_v, v_thresh, 255, cv.THRESH_BINARY_INV)
@@ -141,8 +141,8 @@ class MedianBasedFilteringAlgorithm(BaseHsvBlobAlgorithm):
     def _thresholding(self):
         super()._thresholding()
         (h_hist, s_hist, v_hist) = hist.get_histogram(self.img_prep_hsv, color="hsv", normalize=True)
-        s_thresh, s_thresh_val = hf.median_thresh(s_hist)
-        v_thresh, v_thresh_val = hf.median_thresh(v_hist)
+        _, s_thresh_val = hf.median_thresh(s_hist)
+        _, v_thresh_val = hf.median_thresh(v_hist)
 
         s_filter = []
         v_filter = []
@@ -157,3 +157,17 @@ class MedianBasedFilteringAlgorithm(BaseHsvBlobAlgorithm):
         self.img_s_thresh = np.where(np.isin(self.img_prep_s, s_filter), 0, 255).astype("uint8")
         self.img_v_thresh = np.where(np.isin(self.img_prep_v, v_filter), 0, 255).astype("uint8")
         self.img_h_thresh = np.full_like(self.img_prep_h, 255)
+
+class MedianBasedThresholdingORAlgorithm(MedianBasedThresholdingAlgorithm):
+
+    def _morphology(self):
+        img_s_thresh_morphed = self._opening_closing(self.img_s_thresh, open_ksize=(3, 3), open_iterations=3)
+        img_v_thresh_morphed = self._opening_closing(self.img_v_thresh, open_ksize=(3, 3), open_iterations=3)
+        self.img_morphed = cv.bitwise_or(img_s_thresh_morphed, img_v_thresh_morphed)
+
+class MedianBasedFilteringORAlgorithm(MedianBasedFilteringAlgorithm):
+
+    def _morphology(self):
+        img_s_thresh_morphed = self._opening_closing(self.img_s_thresh, open_ksize=(3, 3), open_iterations=3)
+        img_v_thresh_morphed = self._opening_closing(self.img_v_thresh, open_ksize=(3, 3), open_iterations=3)
+        self.img_morphed = cv.bitwise_or(img_s_thresh_morphed, img_v_thresh_morphed)
