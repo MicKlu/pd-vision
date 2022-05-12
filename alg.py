@@ -13,7 +13,7 @@ class IAlgorithm:
 class BaseAlgorithm(IAlgorithm):
     
     def __init__(self, img_path: str):
-        self.__img_path = img_path
+        self._img_path = img_path
         self.img_original_bgr = None
         self.count_result = None
 
@@ -28,7 +28,8 @@ class BaseAlgorithm(IAlgorithm):
         return self.count_result
 
     def _capture(self):
-        self.img_original_bgr = cv.imread(self.__img_path)
+        self.img_original_bgr = cv.imread(self._img_path)
+        self.img_original_bgr = cv.resize(self.img_original_bgr, None, fx=0.5, fy=0.5)
 
 class BaseBlobAlgorithm(BaseAlgorithm):
 
@@ -88,7 +89,6 @@ class BaseHsvBlobAlgorithm(BaseBlobAlgorithm):
 
     def _extraction(self):
         self.blobs, hierarchy = cv.findContours(self.img_morphed, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
-        # cv.drawContours(img, contours, -1, (0, 0, 255), 3)
     
     def _counting(self):
         self.count_result = 0

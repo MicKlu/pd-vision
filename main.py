@@ -91,10 +91,11 @@ def plot_results(alg: a.BaseHsvBlobAlgorithm, backend="matplotlib"):
 if __name__ == "__main__":
 
     ### Load image
-    imgs_list = os.listdir("imgs")
+    img_difficulty = "easy" # easy, moderate, hard, extreme
+    imgs_list = os.listdir(f"imgs/{img_difficulty}_samples")
     
     img_index = 0
-    img_path = f"imgs/{imgs_list[img_index]}"
+    img_path = f"imgs/{img_difficulty}_samples/{imgs_list[img_index]}"
     print(img_path)
 
     print()
