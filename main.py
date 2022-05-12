@@ -151,6 +151,16 @@ if __name__ == "__main__":
     print(f"All blobs: {len(alg.blobs)}")
     print(f"Valid blobs / Counted objects: {count}\n")
 
+    # plot_results(alg, backend="opencv")
+
+    ### Increment-based filtering OR algorithm
+    alg = a.IncrementBasedFilteringAlgorithm(img_path)
+    count = alg.count()
+
+    print("### Increment-based filtering OR algorithm ###")
+    print(f"All blobs: {len(alg.blobs)}")
+    print(f"Valid blobs / Counted objects: {count}\n")
+
     plot_results(alg, backend="opencv")
 
     h = alg.img_prep_h

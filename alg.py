@@ -171,3 +171,19 @@ class MedianBasedFilteringORAlgorithm(MedianBasedFilteringAlgorithm):
         img_s_thresh_morphed = self._opening_closing(self.img_s_thresh, open_ksize=(3, 3), open_iterations=3)
         img_v_thresh_morphed = self._opening_closing(self.img_v_thresh, open_ksize=(3, 3), open_iterations=3)
         self.img_morphed = cv.bitwise_or(img_s_thresh_morphed, img_v_thresh_morphed)
+
+class IncrementBasedFilteringAlgorithm(BaseHsvBlobAlgorithm):
+
+    def _thresholding(self):
+        super()._thresholding()
+        (h_hist, s_hist, v_hist) = hist.get_histogram(self.img_prep_hsv, color="hsv", normalize=True)
+
+        d_s_hist = s_hist[0][1:] - s_hist[0][:-1]
+        d_v_hist = v_hist[0][1:] - v_hist[0][:-1]
+
+        for start_pix_val in range(0, 255 - 10):
+            d_s_hist[start_pix_val:start_pix_val + 10]
+            d_v_hist[start_pix_val:start_pix_val + 10]
+
+        import sys
+        sys.exit()
