@@ -1,5 +1,6 @@
 import cv2 as cv
 import numpy as np
+import math
 import hist
 import hist_filter as hf
 
@@ -29,7 +30,19 @@ class BaseAlgorithm(IAlgorithm):
 
     def _capture(self):
         self.img_original_bgr = cv.imread(self._img_path)
-        self.img_original_bgr = cv.resize(self.img_original_bgr, None, fx=0.5, fy=0.5)
+
+        w = np.size(self.img_original_bgr, 1)
+        h = np.size(self.img_original_bgr, 0)
+        target_d = 1920 * 1080
+        ratio = w / h
+
+        target_h = math.sqrt(target_d * h / w)
+        target_w = target_h * ratio
+
+        target_h = math.ceil(target_h)
+        target_w = math.ceil(target_w)
+
+        self.img_original_bgr = cv.resize(self.img_original_bgr, (target_w, target_h))
 
 class BaseBlobAlgorithm(BaseAlgorithm):
 
@@ -42,7 +55,7 @@ class BaseBlobAlgorithm(BaseAlgorithm):
     def _morphology(self): pass
     def _extraction(self): pass
 
-    def _opening_closing(self, img, open_ksize: tuple = (2, 2), close_ksize: tuple = (16, 16), open_iterations=1, close_iterations=1):
+    def _opening_closing(self, img, open_ksize: tuple = (3, 3), close_ksize: tuple = (16, 16), open_iterations=1, close_iterations=1):
         kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, open_ksize)
         img_opened = cv.morphologyEx(img, cv.MORPH_OPEN, kernel, iterations=open_iterations)
 
@@ -68,6 +81,7 @@ class BaseHsvBlobAlgorithm(BaseBlobAlgorithm):
         self.img_prep_hsv = None
         self.img_prep_h, self.img_prep_s, self.img_prep_v = (None, None, None)
         self.img_h_thresh, self.img_s_thresh, self.img_v_thresh = (None, None, None)
+        self.img_bitwise = None
         self.img_morphed = None
         self.blobs = None
         self.valid_blobs = None
@@ -85,6 +99,7 @@ class BaseHsvBlobAlgorithm(BaseBlobAlgorithm):
 
     def _morphology(self):
         img_sv_thresh = cv.bitwise_and(self.img_s_thresh, self.img_v_thresh)
+        self.img_bitwise = img_sv_thresh
         self.img_morphed = self._opening_closing(img_sv_thresh)
 
     def _extraction(self):
@@ -107,7 +122,8 @@ class BaseHsvBlobAlgorithm(BaseBlobAlgorithm):
 
     def _sharpening(self, img, kernel=None):
         if kernel is None:
-            kernel = np.array([[0, -1, 0], [-1, 5, -1], [0, -1, 0]])
+            # kernel = np.array([[0, -1, 0], [-1, 5, -1], [0, -1, 0]])
+            kernel = np.array([[-1, -1, -1], [-1, 9, -1], [-1, -1, -1]])
         img_sharp = cv.filter2D(img, -1, kernel)
         return img_sharp
 
@@ -164,6 +180,7 @@ class MedianBasedThresholdingORAlgorithm(MedianBasedThresholdingAlgorithm):
         img_s_thresh_morphed = self._opening_closing(self.img_s_thresh, open_ksize=(3, 3), open_iterations=3)
         img_v_thresh_morphed = self._opening_closing(self.img_v_thresh, open_ksize=(3, 3), open_iterations=3)
         self.img_morphed = cv.bitwise_or(img_s_thresh_morphed, img_v_thresh_morphed)
+        self.img_bitwise = self.img_morphed
 
 class MedianBasedFilteringORAlgorithm(MedianBasedFilteringAlgorithm):
 
@@ -171,3 +188,33 @@ class MedianBasedFilteringORAlgorithm(MedianBasedFilteringAlgorithm):
         img_s_thresh_morphed = self._opening_closing(self.img_s_thresh, open_ksize=(3, 3), open_iterations=3)
         img_v_thresh_morphed = self._opening_closing(self.img_v_thresh, open_ksize=(3, 3), open_iterations=3)
         self.img_morphed = cv.bitwise_or(img_s_thresh_morphed, img_v_thresh_morphed)
+        self.img_bitwise = self.img_morphed
+
+class CustomHsvBlobAlgorithm(ReferenceAlgorithm):
+
+    def _preprocessing(self):
+        super()._preprocessing()
+
+        img_hsv = cv.cvtColor(self.img_prep_bgr, cv.COLOR_BGR2HSV)
+        h, s, v = cv.split(img_hsv)
+
+        self.img_prep_h_uneq = h
+        self.img_prep_s_uneq = s
+        self.img_prep_v_uneq = v
+
+        v_norm = cv.equalizeHist(v)
+
+        # cv.namedWindow("dsa", cv.WINDOW_NORMAL)
+        # cv.imshow("dsa", s)
+
+        # cv.waitKey()
+
+        self.img_prep_bgr = cv.cvtColor(cv.merge([h, s, v_norm]), cv.COLOR_HSV2BGR)
+
+        # img_hsv = cv.cvtColor(self.img_prep_bgr, cv.COLOR_BGR2HSV)
+        # h,s,v = cv.split(img_hsv)
+
+        # cv.namedWindow("cxz", cv.WINDOW_NORMAL)
+        # cv.imshow("cxz", s)
+
+        # cv.waitKey()

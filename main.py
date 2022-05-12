@@ -5,6 +5,7 @@ import cv2 as cv
 import numpy as np
 from matplotlib import pyplot as plt
 import os
+import sys
 import hist
 
 def plot_results(alg: a.BaseHsvBlobAlgorithm, backend="matplotlib"):
@@ -64,6 +65,11 @@ def plot_results(alg: a.BaseHsvBlobAlgorithm, backend="matplotlib"):
         plt.title("V plane thresholded")
 
         plt.subplot(rows, cols, 10)
+        plt.imshow(alg.img_bitwise, cmap="gray")
+        plt.axis("off")
+        plt.title("Bitwise operations")
+
+        plt.subplot(rows, cols, 11)
         plt.imshow(alg.img_morphed, cmap="gray")
         plt.axis("off")
         plt.title("Morphology operations")
@@ -78,7 +84,7 @@ def plot_results(alg: a.BaseHsvBlobAlgorithm, backend="matplotlib"):
             np.hstack((alg.img_original_bgr, alg.img_prep_bgr, img_output)),
             np.hstack((cv.cvtColor(alg.img_prep_h, cv.COLOR_GRAY2BGR), cv.cvtColor(alg.img_prep_s, cv.COLOR_GRAY2BGR), cv.cvtColor(alg.img_prep_v, cv.COLOR_GRAY2BGR))),
             np.hstack((cv.cvtColor(alg.img_h_thresh, cv.COLOR_GRAY2BGR), cv.cvtColor(alg.img_s_thresh, cv.COLOR_GRAY2BGR), cv.cvtColor(alg.img_v_thresh, cv.COLOR_GRAY2BGR))),
-            np.hstack((cv.cvtColor(alg.img_morphed, cv.COLOR_GRAY2BGR), empty_img, empty_img))
+            np.hstack((cv.cvtColor(alg.img_bitwise, cv.COLOR_GRAY2BGR), cv.cvtColor(alg.img_morphed, cv.COLOR_GRAY2BGR), empty_img))
         ))
 
         cv.namedWindow("Results", cv.WINDOW_NORMAL)
@@ -94,7 +100,7 @@ if __name__ == "__main__":
     img_difficulty = "easy" # easy, moderate, hard, extreme
     imgs_list = os.listdir(f"imgs/{img_difficulty}_samples")
     
-    img_index = 0
+    img_index = 4
     img_path = f"imgs/{img_difficulty}_samples/{imgs_list[img_index]}"
     print(img_path)
 
@@ -111,7 +117,10 @@ if __name__ == "__main__":
     print(f"All blobs: {len(ref_alg.blobs)}")
     print(f"Valid blobs / Counted objects: {count}\n")
 
-    # plot_results(ref_alg, backend="opencv")
+    plot_results(ref_alg, backend="opencv")
+    hist.show_histogram(ref_alg.img_prep_hsv, color="hsv")
+
+    sys.exit()
 
     ### Median-based thresholding algorithm
     alg = a.MedianBasedThresholdingAlgorithm(img_path)
