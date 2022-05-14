@@ -124,10 +124,10 @@ def fill_holes(img_original, img_hollow):
 if __name__ == "__main__":
     
     ### Load image
-    img_difficulty = "moderate" # easy, moderate, hard, extreme
+    img_difficulty = "easy" # easy, moderate, hard, extreme
     imgs_list = os.listdir(f"imgs/{img_difficulty}_samples")
     
-    img_index = 1
+    img_index = 0
     img_path = f"imgs/{img_difficulty}_samples/{imgs_list[img_index]}"
     
     print()
@@ -137,6 +137,9 @@ if __name__ == "__main__":
 
     h_uneq = alg.img_prep_h_uneq
     h_eq = alg.img_prep_h
+
+    # h_uneq = cv.medianBlur(h_uneq, 3)
+    # h_eq = cv.medianBlur(h_eq, 3)
 
     # Move all zeros to 179 (almost same red color)
     _, m = cv.threshold(h_uneq, 0, 179, cv.THRESH_BINARY_INV)
@@ -149,7 +152,7 @@ if __name__ == "__main__":
     h_uneq_thresh = reduce_colors(h_uneq)
     h_eq_thresh = reduce_colors(h_eq)
 
-    for i in range(0, 5):   # max 6 best for now
+    for i in range(0, 3):   # max 5; optimal 3
         h_uneq_thresh = reduce_colors(h_uneq_thresh)
         h_eq_thresh = reduce_colors(h_eq_thresh)
 
@@ -159,4 +162,5 @@ if __name__ == "__main__":
     h_uneq_thresh = fill_holes(h_uneq, h_uneq_thresh)
     h_eq_thresh = fill_holes(h_eq, h_eq_thresh)
 
+    # h_uneq is optimal
     plot_results(alg.img_original_bgr, h_uneq, h_eq, h_uneq_thresh, h_eq_thresh)
