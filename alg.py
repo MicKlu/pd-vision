@@ -55,7 +55,7 @@ class BaseBlobAlgorithm(BaseAlgorithm):
     def _morphology(self): pass
     def _extraction(self): pass
 
-    def _opening_closing(self, img, open_ksize: tuple = (3, 3), close_ksize: tuple = (16, 16), open_iterations=1, close_iterations=1):
+    def _opening_closing(self, img, open_ksize: tuple = (3, 3), close_ksize: tuple = (17, 17), open_iterations=1, close_iterations=1):
         kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, open_ksize)
         img_opened = cv.morphologyEx(img, cv.MORPH_OPEN, kernel, iterations=open_iterations)
 
@@ -139,6 +139,18 @@ class ReferenceAlgorithm(BaseHsvBlobAlgorithm):
         _, self.img_s_thresh = cv.threshold(self.img_prep_s, self.s_thresh_level, 255, cv.THRESH_BINARY)
         _, self.img_v_thresh = cv.threshold(self.img_prep_v, self.v_thresh_level, 255, cv.THRESH_BINARY_INV)
         self.img_h_thresh = np.full_like(self.img_prep_h, 255)
+
+class ReferenceAlgorithmWithMorphKernels(ReferenceAlgorithm):
+    
+    def __init__(self, img_path: str, s_thresh_level, v_thresh_level, open_ksize, close_ksize):
+        super().__init__(img_path, s_thresh_level, v_thresh_level)
+        self.open_ksize = open_ksize
+        self.close_ksize = close_ksize
+
+    def _morphology(self):
+        img_sv_thresh = cv.bitwise_and(self.img_s_thresh, self.img_v_thresh)
+        self.img_bitwise = img_sv_thresh
+        self.img_morphed = self._opening_closing(img_sv_thresh, open_ksize=self.open_ksize, close_ksize=self.close_ksize)
 
 class MedianBasedThresholdingAlgorithm(BaseHsvBlobAlgorithm):
 
