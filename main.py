@@ -12,8 +12,12 @@ def plot_results(alg: a.BaseHsvBlobAlgorithm, backend="matplotlib"):
 
     img_output = np.copy(alg.img_original_bgr)
     cv.drawContours(img_output, alg.blobs, -1, (0, 0, 255), 3)
-    cv.drawContours(img_output, alg.valid_blobs, -1, (255, 0, 0), 3)
-
+    
+    for l in alg.valid_blobs:
+        pt1 = (l["stats"][cv.CC_STAT_LEFT], l["stats"][cv.CC_STAT_TOP])
+        pt2 = (pt1[0] + l["stats"][cv.CC_STAT_WIDTH], pt1[1] + l["stats"][cv.CC_STAT_HEIGHT])
+        cv.rectangle(img_output, pt1, pt2, (255, 0, 0), 3)
+    
     if backend == "matplotlib":
         plt.figure()
 
@@ -89,6 +93,7 @@ def plot_results(alg: a.BaseHsvBlobAlgorithm, backend="matplotlib"):
 
         cv.namedWindow("Results", cv.WINDOW_NORMAL)
         cv.imshow("Results", result_img)
+        cv.imwrite("/tmp/results.png", result_img)
 
         while True:
             if cv.waitKey() == 27:
@@ -98,19 +103,18 @@ if __name__ == "__main__":
 
     ### Load image
     img_difficulty = "easy" # easy, moderate, hard, extreme
-    imgs_list = os.listdir(f"imgs/{img_difficulty}_samples")
     
-    img_index = 4
-    img_path = f"imgs/{img_difficulty}_samples/{imgs_list[img_index]}"
+    img_index = 1
+    img_path = f"imgs/{img_difficulty}_samples/img{img_index}.jpg"
     print(img_path)
 
     print()
 
     ### Reference algorithm
-    s_threshs = [38, 86, 39, 159, 40, 65, 64, 30, 77, 78, 39, 52, 123, 79]
-    v_threshs = [104, 156, 100, 72, 93, 64, 37, 37, 36, 36, 99, 94, 102, 31]
+    s_threshs = { "easy": [17, 125, 39, 159, 40], "moderate": [65, 64, 30, 77, 78, 39, 52, 123, 79]}
+    v_threshs = { "easy": [94, 156, 100, 72, 93], "moderate": [64, 37, 37, 36, 36, 99, 94, 102, 31]}
 
-    ref_alg = a.ReferenceAlgorithm(img_path, s_threshs[img_index], v_threshs[img_index])
+    ref_alg = a.ReferenceAlgorithm(img_path, s_threshs[img_difficulty][img_index], v_threshs[img_difficulty][img_index])
     count = ref_alg.count()
 
     print("### Reference algorithm ###")
@@ -119,51 +123,3 @@ if __name__ == "__main__":
 
     plot_results(ref_alg, backend="opencv")
     hist.show_histogram(ref_alg.img_prep_hsv, color="hsv")
-
-    sys.exit()
-
-    ### Median-based thresholding algorithm
-    alg = a.MedianBasedThresholdingAlgorithm(img_path)
-    count = alg.count()
-
-    print("### Median-based thresholding algorithm ###")
-    print(f"All blobs: {len(alg.blobs)}")
-    print(f"Valid blobs / Counted objects: {count}\n")
-
-    # plot_results(alg, backend="opencv")
-
-    ### Median-based filtering algorithm
-    alg = a.MedianBasedFilteringAlgorithm(img_path)
-    count = alg.count()
-
-    print("### Median-based filtering algorithm ###")
-    print(f"All blobs: {len(alg.blobs)}")
-    print(f"Valid blobs / Counted objects: {count}\n")
-
-    # plot_results(alg, backend="opencv")
-
-    ### Median-based thresholding OR algorithm
-    alg = a.MedianBasedThresholdingORAlgorithm(img_path)
-    count = alg.count()
-
-    print("### Median-based thresholding OR algorithm ###")
-    print(f"All blobs: {len(alg.blobs)}")
-    print(f"Valid blobs / Counted objects: {count}\n")
-
-    # plot_results(alg, backend="opencv")
-
-    ### Median-based filtering OR algorithm
-    alg = a.MedianBasedFilteringORAlgorithm(img_path)
-    count = alg.count()
-
-    print("### Median-based filtering OR algorithm ###")
-    print(f"All blobs: {len(alg.blobs)}")
-    print(f"Valid blobs / Counted objects: {count}\n")
-
-    plot_results(alg, backend="opencv")
-
-    h = alg.img_prep_h
-    s = cv.bitwise_and(alg.img_prep_s, alg.img_s_thresh)
-    v = cv.bitwise_and(alg.img_prep_v, alg.img_v_thresh)
-
-    hist.show_histogram(cv.merge((h,s,v)), color="hsv")

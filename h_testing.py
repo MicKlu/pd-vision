@@ -14,6 +14,7 @@ def plot_results(original_bgr, h_uneq, h_eq, h_uneq_thresh, h_eq_thresh):
 
     plt.subplot(3, 4, 1)
     plt.imshow(cv.cvtColor(original_bgr, cv.COLOR_BGR2RGB))
+    plt.axis("off")
 
     plt.subplot(3, 4, 2)
 
@@ -24,6 +25,7 @@ def plot_results(original_bgr, h_uneq, h_eq, h_uneq_thresh, h_eq_thresh):
     ]), cv.COLOR_HSV2RGB)
 
     plt.imshow(h_uneq_out)
+    plt.axis("off")
 
     plt.subplot(3, 4, 3)
 
@@ -34,6 +36,7 @@ def plot_results(original_bgr, h_uneq, h_eq, h_uneq_thresh, h_eq_thresh):
     ]), cv.COLOR_HSV2RGB)
 
     plt.imshow(h_eq_out)
+    plt.axis("off")
 
     plt.subplot(3, 4, 4)
 
@@ -49,27 +52,32 @@ def plot_results(original_bgr, h_uneq, h_eq, h_uneq_thresh, h_eq_thresh):
     ]), cv.COLOR_HSV2RGB)
 
     plt.imshow(h_mixed_out)
+    plt.axis("off")
 
     plt.subplot(3, 4, 5)
     plt.imshow(h_uneq, cmap="gray")
+    plt.axis("off")
 
     plt.subplot(3, 4, 6)
     plt.hist(h_uneq.ravel(), 180, [0,180])
 
     plt.subplot(3, 4, 7)
     plt.imshow(h_uneq_thresh, cmap="gray")
+    plt.axis("off")
 
     plt.subplot(3, 4, 8)
     plt.hist(h_uneq_thresh.ravel(), 180, [0,180])
 
     plt.subplot(3, 4, 9)
     plt.imshow(h_eq, cmap="gray")
+    plt.axis("off")
 
     plt.subplot(3, 4, 10)
     plt.hist(h_eq.ravel(), 180, [0,180])
 
     plt.subplot(3, 4, 11)
     plt.imshow(h_eq_thresh, cmap="gray")
+    plt.axis("off")
 
     plt.subplot(3, 4, 12)
     plt.hist(h_eq_thresh.ravel(), 180, [0,180])
@@ -127,7 +135,7 @@ if __name__ == "__main__":
     img_difficulty = "easy" # easy, moderate, hard, extreme
     imgs_list = os.listdir(f"imgs/{img_difficulty}_samples")
     
-    img_index = 0
+    img_index = 4
     img_path = f"imgs/{img_difficulty}_samples/{imgs_list[img_index]}"
     
     print()

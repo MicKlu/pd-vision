@@ -8,17 +8,18 @@ import os
 def main():
     imgs_list = os.listdir("imgs")
 
-    for (i, img_file) in enumerate(imgs_list):
-        img = cv.imread(f"imgs/{img_file}")
-        h_hist, s_hist, v_hist = get_histogram(img)
-        # print("H")
-        # print(h_hist[0])
-        # print("S")
-        # print(s_hist[0])
-        # print("V")
-        # print(v_hist[0])
+    # for (i, img_file) in enumerate(imgs_list):
+    # img = cv.imread(f"imgs/{img_file}")
+    img = cv.imread(f"imgs/easy_samples/img1.jpg")
+    # h_hist, s_hist, v_hist = get_histogram(img)
+    # print("H")
+    # print(h_hist[0])
+    # print("S")
+    # print(s_hist[0])
+    # print("V")
+    # print(v_hist[0])
 
-        show_histogram(img, fig=i)
+    show_histogram(img, fig=0)
 
 def show_histogram(img, color="bgr", fig=None):
     img_rgb, img_hsv = convert_color(img, color)
@@ -28,15 +29,19 @@ def show_histogram(img, color="bgr", fig=None):
 
     plt.subplot(2, 4, 1)
     plt.imshow(img_rgb)
+    plt.axis("off")
 
     plt.subplot(2, 4, 2)
     plt.imshow(h, cmap="gray", vmax=180)
+    plt.axis("off")
 
     plt.subplot(2, 4, 3)
     plt.imshow(s, cmap="gray")
+    plt.axis("off")
 
     plt.subplot(2, 4, 4)
     plt.imshow(v, cmap="gray")
+    plt.axis("off")
 
     plt.subplot(2, 4, 6)
     plt.hist(h.ravel(), 180, [0,180])

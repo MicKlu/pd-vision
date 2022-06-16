@@ -85,6 +85,8 @@ class BaseHsvBlobAlgorithm(BaseBlobAlgorithm):
         self.img_morphed = None
         self.blobs = None
         self.valid_blobs = None
+
+        self._label_connectivity = 8
         self._min_blob_size = 500
 
     def _preprocessing(self):
@@ -103,14 +105,18 @@ class BaseHsvBlobAlgorithm(BaseBlobAlgorithm):
         self.img_morphed = self._opening_closing(img_sv_thresh)
 
     def _extraction(self):
+        _, _, stats, centroids = cv.connectedComponentsWithStats(self.img_morphed, connectivity=self._label_connectivity)
+        self.labels = [{ "stats": stats[i], "centroids": centroids[i]} for i in range(1, len(stats))]
         self.blobs, hierarchy = cv.findContours(self.img_morphed, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
     
     def _counting(self):
         self.count_result = 0
         self.valid_blobs = []
-        for blob in self.blobs:
-            if cv.contourArea(blob) > self._min_blob_size:
-                self.valid_blobs.append(blob)
+
+        for label in self.labels:
+            size = label["stats"][cv.CC_STAT_AREA]
+            if size >= self._min_blob_size:
+                self.valid_blobs.append(label)
                 self.count_result += 1
 
     def _bluring(self, img, median_blur_ksize: int = 3, blur_ksize: tuple = (3, 3)):
@@ -122,7 +128,6 @@ class BaseHsvBlobAlgorithm(BaseBlobAlgorithm):
 
     def _sharpening(self, img, kernel=None):
         if kernel is None:
-            # kernel = np.array([[0, -1, 0], [-1, 5, -1], [0, -1, 0]])
             kernel = np.array([[-1, -1, -1], [-1, 9, -1], [-1, -1, -1]])
         img_sharp = cv.filter2D(img, -1, kernel)
         return img_sharp
@@ -139,6 +144,69 @@ class ReferenceAlgorithm(BaseHsvBlobAlgorithm):
         _, self.img_s_thresh = cv.threshold(self.img_prep_s, self.s_thresh_level, 255, cv.THRESH_BINARY)
         _, self.img_v_thresh = cv.threshold(self.img_prep_v, self.v_thresh_level, 255, cv.THRESH_BINARY_INV)
         self.img_h_thresh = np.full_like(self.img_prep_h, 255)
+
+class ReferenceAlgorithmToleranceCount(ReferenceAlgorithm):
+
+    def __init__(self, img_path: str, s_thresh_level=23, v_thresh_level=96, tolerance=900):
+        super().__init__(img_path, s_thresh_level, v_thresh_level)
+        self.tolerance = tolerance
+
+    def _counting(self):
+        minimum = 0
+        maximum = np.size(self.img_morphed)
+        
+        L = len(self.labels)
+
+        prev_average = -1
+
+        while True:
+            sizes = []
+
+            for i in range(0, L):
+                size = self.labels[i]["stats"][cv.CC_STAT_AREA]
+                if size >= minimum and size <= maximum:
+                    sizes.append(size)
+
+            average = np.average(sizes)
+
+            if average == prev_average:
+                break
+
+            std = np.std(sizes)
+            variation = (maximum - minimum) / average * 100
+
+            # print(average)
+            # print(std)
+            # print(variation)
+            # print()
+
+            if variation <= self.tolerance:
+                break
+            else:
+                extreme_average = (np.max(sizes) + np.min(sizes)) / 2
+                if extreme_average > average:
+                    maximum = average + std
+                    minimum = np.min(sizes)
+                elif extreme_average < average:
+                    minimum = average - std
+                    maximum = np.max(sizes)
+            
+            prev_average = average
+
+        cutoff_low = (1 - self.tolerance / 1000) * average
+        cutoff_high = (1 + self.tolerance / 1000) * average
+
+        # print(cutoff_low)
+        # print(cutoff_high)
+
+        self.count_result = 0
+        self.valid_blobs = []
+
+        for label in self.labels:
+            size = label["stats"][cv.CC_STAT_AREA]
+            if size >= cutoff_low and size <= cutoff_high:
+                self.valid_blobs.append(label)
+                self.count_result += 1
 
 class ReferenceAlgorithmWithMorphKernels(ReferenceAlgorithm):
     
@@ -230,3 +298,6 @@ class CustomHsvBlobAlgorithm(ReferenceAlgorithm):
         # cv.imshow("cxz", s)
 
         # cv.waitKey()
+
+    def _sharpening(self, img, kernel=None):
+        return super()._sharpening(img, np.array([[0, -1, 0], [-1, 5, -1], [0, -1, 0]]))
