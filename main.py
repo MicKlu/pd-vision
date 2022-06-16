@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
-import alg as a
+from alg import BaseHsvBlobAlgorithm
+import alg.ref as ref
 import cv2 as cv
 import numpy as np
 from matplotlib import pyplot as plt
@@ -8,7 +9,7 @@ import os
 import sys
 import hist
 
-def plot_results(alg: a.BaseHsvBlobAlgorithm, backend="matplotlib"):
+def plot_results(alg: BaseHsvBlobAlgorithm, backend="matplotlib"):
 
     img_output = np.copy(alg.img_original_bgr)
     cv.drawContours(img_output, alg.blobs, -1, (0, 0, 255), 3)
@@ -114,7 +115,7 @@ if __name__ == "__main__":
     s_threshs = { "easy": [17, 125, 39, 159, 40], "moderate": [65, 64, 30, 77, 78, 39, 52, 123, 79]}
     v_threshs = { "easy": [94, 156, 100, 72, 93], "moderate": [64, 37, 37, 36, 36, 99, 94, 102, 31]}
 
-    ref_alg = a.ReferenceAlgorithm(img_path, s_threshs[img_difficulty][img_index], v_threshs[img_difficulty][img_index])
+    ref_alg = ref.ReferenceAlgorithm(img_path, s_threshs[img_difficulty][img_index], v_threshs[img_difficulty][img_index])
     count = ref_alg.count()
 
     print("### Reference algorithm ###")
