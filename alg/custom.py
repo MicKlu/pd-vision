@@ -14,19 +14,39 @@ class CustomHsvBlobAlgorithm(ReferenceAlgorithm):
         self.img_prep_s_uneq = s
         self.img_prep_v_uneq = v
 
+        # s_norm = cv.equalizeHist(s)
         v_norm = cv.equalizeHist(v)
 
-        self.img_prep_bgr = cv.cvtColor(cv.merge([h, s, v_norm]), cv.COLOR_HSV2BGR)
+        # s_norm = cv.morphologyEx(s_norm, cv.MORPH_TOPHAT, (5, 5))
+        v_norm = cv.morphologyEx(v_norm, cv.MORPH_TOPHAT, (5, 5))
+
+        self.img_prep_h = h
+        self.img_prep_s = s
+        self.img_prep_v = v_norm
+
+        self.img_prep_hsv = cv.merge([h, s, v_norm])
+        self.img_prep_bgr = cv.cvtColor(self.img_prep_hsv, cv.COLOR_HSV2BGR)
+
+        # Apply preprocessing to all spaces (HSV -> BRG -> HSV)
+        # hsv2bgr2hsv = self.img_prep_hsv = cv.cvtColor(self.img_prep_bgr, cv.COLOR_BGR2HSV)
+        # self.img_prep_h, self.img_prep_s, self.img_prep_v = self.img_prep_h, self.img_prep_s, self.img_prep_v = cv.split(hsv2bgr2hsv)
 
     def _sharpening(self, img, kernel=None):
         return super()._sharpening(img, np.array([[0, -1, 0], [-1, 5, -1], [0, -1, 0]]))
 
     def _thresholding(self):
-        super()._thresholding()
-
         self._color_reduction()
 
+        self.img_s_h_masked = cv.bitwise_and(self.img_prep_s, self.h_mask)
+        self.img_v_h_masked = cv.bitwise_and(cv.bitwise_not(self.img_prep_v), self.h_mask)
+
         # to be continued
+
+        # BEGIN for now
+        self.img_h_thresh = self.h_mask
+        self.img_s_thresh = self.img_s_h_masked
+        self.img_v_thresh = self.img_v_h_masked
+        # END for now
 
     def _color_reduction(self):
         h_uneq = np.copy(self.img_prep_h_uneq)
@@ -71,7 +91,10 @@ class CustomHsvBlobAlgorithm(ReferenceAlgorithm):
 
         return cv.bitwise_and(img_original, mask)
 
-    def _get_h_histogram(self, h_channel):
-        hist = np.histogram(h_channel.ravel(), 180, [0,180])
+    def _get_single_channel_histogram(self, channel, bins=256):
+        hist = np.histogram(channel.ravel(), bins, [0,bins])
         hist = hist[0] / hist[0].max()
         return hist
+
+    def _get_h_histogram(self, h_channel):
+        return self._get_single_channel_histogram(h_channel, 180)
