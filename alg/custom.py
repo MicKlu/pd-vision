@@ -14,11 +14,12 @@ class CustomHsvBlobAlgorithm(ReferenceAlgorithm):
         self.img_prep_s_uneq = s
         self.img_prep_v_uneq = v
 
-        # s_norm = cv.equalizeHist(s)
         v_norm = cv.equalizeHist(v)
 
-        # s_norm = cv.morphologyEx(s_norm, cv.MORPH_TOPHAT, (5, 5))
-        v_norm = cv.morphologyEx(v_norm, cv.MORPH_TOPHAT, (5, 5))
+        # v_norm = cv.morphologyEx(v_norm, cv.MORPH_TOPHAT, (5, 5))
+        # kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, (25, 25))
+        kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, (10, 10))
+        v_norm = cv.morphologyEx(v_norm, cv.MORPH_TOPHAT, kernel)
 
         self.img_prep_h = h
         self.img_prep_s = s
@@ -40,13 +41,23 @@ class CustomHsvBlobAlgorithm(ReferenceAlgorithm):
         self.img_s_h_masked = cv.bitwise_and(self.img_prep_s, self.h_mask)
         self.img_v_h_masked = cv.bitwise_and(cv.bitwise_not(self.img_prep_v), self.h_mask)
 
-        # to be continued
+        s_hist = self._get_single_channel_histogram(self.img_s_h_masked)[1:]
+        v_hist = self._get_single_channel_histogram(self.img_v_h_masked)[1:]
 
-        # BEGIN for now
+        print(s_hist.max())
+        print(v_hist.max())
+
+        s_pix_val = s_hist.tolist().index(s_hist.max()) + 1
+        v_pix_val = v_hist.tolist().index(v_hist.max()) + 0
+
+        # s_pix_val = 63
+        print(s_pix_val)
+        print(v_pix_val)
+
+        _, self.img_s_thresh = cv.threshold(self.img_s_h_masked, s_pix_val, 255, cv.THRESH_BINARY)
+        _, self.img_v_thresh = cv.threshold(self.img_v_h_masked, v_pix_val, 255, cv.THRESH_BINARY)
+
         self.img_h_thresh = self.h_mask
-        self.img_s_thresh = self.img_s_h_masked
-        self.img_v_thresh = self.img_v_h_masked
-        # END for now
 
     def _color_reduction(self):
         h_uneq = np.copy(self.img_prep_h_uneq)
@@ -63,7 +74,9 @@ class CustomHsvBlobAlgorithm(ReferenceAlgorithm):
 
         h_uneq_threshed = self._reduce_colors(h_uneq_threshed, close=True)
 
-        self.h_mask = self._fill_holes(h_uneq, h_uneq_threshed)
+        h_uneq_threshed = self._fill_holes(h_uneq, h_uneq_threshed)
+
+        _, self.h_mask = cv.threshold(h_uneq_threshed, 1, 255, cv.THRESH_BINARY)
 
     def _reduce_colors(self, img_h, close=False):
         img_hist = self._get_h_histogram(img_h)[1:]

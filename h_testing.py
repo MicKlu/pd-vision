@@ -10,7 +10,7 @@ import sys
 def plot_h_mask(alg: CustomHsvBlobAlgorithm):
     original_bgr = alg.img_original_bgr
     h_uneq = alg.img_prep_h_uneq
-    h_uneq_thresh = alg.h_mask
+    h_uneq_thresh = cv.bitwise_and(h_uneq, alg.h_mask)
 
     h, s, v = cv.split(cv.cvtColor(original_bgr, cv.COLOR_BGR2HSV))
 
@@ -98,11 +98,36 @@ def plot_masked_sv(alg: CustomHsvBlobAlgorithm):
 
     plt.show()
 
+def plot_thresholded_sv(alg: CustomHsvBlobAlgorithm):
+    plt.figure("masked_sv")
+
+    subplot_dimens = (3, 2)
+
+    plt.subplot(subplot_dimens[0], subplot_dimens[1], 1)
+    plt.imshow(alg.img_s_h_masked, cmap="gray")
+    plt.axis("off")
+
+    plt.subplot(subplot_dimens[0], subplot_dimens[1], 2)
+    plt.imshow(alg.img_v_h_masked, cmap="gray")
+    plt.axis("off")
+
+    plt.subplot(subplot_dimens[0], subplot_dimens[1], 3)
+    plt.imshow(alg.img_s_thresh, cmap="gray")
+    plt.axis("off")
+
+    plt.subplot(subplot_dimens[0], subplot_dimens[1], 4)
+    plt.imshow(alg.img_v_thresh, cmap="gray")
+    # kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, (25, 25))
+    # plt.imshow(cv.morphologyEx(alg.img_v_thresh, cv.MORPH_TOPHAT, kernel), cmap="gray")
+    plt.axis("off")
+
+    plt.show()
+
 if __name__ == "__main__":
     
     ### Load image
     img_difficulty = "easy" # easy, moderate, hard, extreme
-    img_index = 1
+    img_index = 2
 
     img_path = f"imgs/{img_difficulty}_samples/img{img_index}.jpg"
     
@@ -115,3 +140,4 @@ if __name__ == "__main__":
     # plot_h_mask(alg)
 
     plot_masked_sv(alg)
+    plot_thresholded_sv(alg)
