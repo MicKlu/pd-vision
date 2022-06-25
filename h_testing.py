@@ -121,6 +121,14 @@ def plot_thresholded_sv(alg: CustomHsvBlobAlgorithm):
     # plt.imshow(cv.morphologyEx(alg.img_v_thresh, cv.MORPH_TOPHAT, kernel), cmap="gray")
     plt.axis("off")
 
+    plt.subplot(subplot_dimens[0], subplot_dimens[1], 5)
+    plt.imshow(alg.img_s_morphed, cmap="gray")
+    plt.axis("off")
+
+    plt.subplot(subplot_dimens[0], subplot_dimens[1], 6)
+    plt.imshow(alg.img_v_morphed, cmap="gray")
+    plt.axis("off")
+
     plt.show()
 
 if __name__ == "__main__":

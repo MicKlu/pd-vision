@@ -74,7 +74,8 @@ class CustomHsvBlobAlgorithm(ReferenceAlgorithm):
 
         h_uneq_threshed = self._reduce_colors(h_uneq_threshed, close=True)
 
-        h_uneq_threshed = self._fill_holes(h_uneq, h_uneq_threshed)
+        mask = self._fill_holes(h_uneq_threshed)
+        h_uneq_threshed = cv.bitwise_and(h_uneq, mask)
 
         _, self.h_mask = cv.threshold(h_uneq_threshed, 1, 255, cv.THRESH_BINARY)
 
@@ -95,14 +96,15 @@ class CustomHsvBlobAlgorithm(ReferenceAlgorithm):
 
         return img_thresh
 
-    def _fill_holes(self, img_original, img_hollow):
+    def _fill_holes(self, img_hollow):
         _, mask = cv.threshold(img_hollow, 0, 255, cv.THRESH_BINARY)
         cont, hier = cv.findContours(mask, cv.RETR_CCOMP, cv.CHAIN_APPROX_SIMPLE)
 
+        img_filled = mask
         for c in cont:
-            cv.drawContours(mask, [c], 0, 255, -1)
+            cv.drawContours(img_filled, [c], 0, 255, -1)
 
-        return cv.bitwise_and(img_original, mask)
+        return img_filled
 
     def _get_single_channel_histogram(self, channel, bins=256):
         hist = np.histogram(channel.ravel(), bins, [0,bins])
@@ -111,3 +113,32 @@ class CustomHsvBlobAlgorithm(ReferenceAlgorithm):
 
     def _get_h_histogram(self, h_channel):
         return self._get_single_channel_histogram(h_channel, 180)
+
+    def _morphology(self):
+        self.img_s_morphed = np.copy(self.img_s_thresh)
+        self.img_v_morphed = np.copy(self.img_v_thresh)
+
+        # self.img_v_morphed = cv.morphologyEx(self.img_v_morphed, cv.MORPH_ERODE, (5,5))
+
+        blobs, hierarchy = cv.findContours(self.img_v_morphed, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE)
+        for b in blobs:
+            if cv.contourArea(b) <= 1:
+                cv.drawContours(self.img_v_morphed, [b], 0, 0, -1)
+
+        kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, (17, 17))
+        self.img_v_morphed = cv.morphologyEx(self.img_v_morphed, cv.MORPH_DILATE, kernel)
+        self.img_v_morphed = self._fill_holes(self.img_v_morphed)
+        kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, (17, 17))
+        self.img_v_morphed = cv.morphologyEx(self.img_v_morphed, cv.MORPH_ERODE, kernel)
+
+        kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, (5, 5))
+        self.img_v_morphed = cv.morphologyEx(self.img_v_morphed, cv.MORPH_OPEN, kernel, iterations=3)
+        # self.img_v_morphed = self._closing_opening(self.img_v_morphed)
+        # kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, (11, 11))
+        # self.img_v_morphed = cv.morphologyEx(self.img_v_morphed, cv.MORPH_ERODE, kernel)
+        # self.img_v_morphed = self._opening_closing(self.img_v_morphed, open_ksize=(11, 11))
+
+        # BEGIN for now
+        self.img_bitwise = cv.bitwise_and(self.img_s_thresh, self.img_v_thresh)
+        self.img_morphed = self.img_bitwise
+        # END for now
