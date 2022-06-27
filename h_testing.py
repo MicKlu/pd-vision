@@ -117,8 +117,6 @@ def plot_thresholded_sv(alg: CustomHsvBlobAlgorithm):
 
     plt.subplot(subplot_dimens[0], subplot_dimens[1], 4)
     plt.imshow(alg.img_v_thresh, cmap="gray")
-    # kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, (25, 25))
-    # plt.imshow(cv.morphologyEx(alg.img_v_thresh, cv.MORPH_TOPHAT, kernel), cmap="gray")
     plt.axis("off")
 
     plt.subplot(subplot_dimens[0], subplot_dimens[1], 5)
@@ -147,5 +145,5 @@ if __name__ == "__main__":
     # h_uneq is optimal
     # plot_h_mask(alg)
 
-    plot_masked_sv(alg)
+    # plot_masked_sv(alg)
     plot_thresholded_sv(alg)

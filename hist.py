@@ -69,6 +69,12 @@ def get_histogram(img, color="bgr", normalize=False):
 
     return (h_hist, s_hist, v_hist)
 
+def get_single_channel_histogram(channel, bins=256, normalize=False):
+    hist = np.histogram(channel.ravel(), bins, [0,bins])[0]
+    if normalize:
+        hist = hist / hist.max()
+    return hist
+
 def convert_color(img, color="bgr"):
     if color == "bgr":
         img_hsv = cv.cvtColor(img, cv.COLOR_BGR2HSV)
