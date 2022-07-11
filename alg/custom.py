@@ -42,7 +42,6 @@ class CustomHsvBlobAlgorithm(ReferenceAlgorithm):
         self.img_s_h_masked = cv.bitwise_and(self.img_prep_s, self.h_mask)
         self.img_v_h_masked = cv.bitwise_and(cv.bitwise_not(self.img_prep_v), self.h_mask)
 
-        # self.img_s_h_masked = cv.GaussianBlur(self.img_s_h_masked, (3, 3), 0)
         self.img_v_h_masked = cv.GaussianBlur(self.img_v_h_masked, (3, 3), 0)
 
         s_hist = self._get_single_channel_histogram(self.img_s_h_masked)[1:]
