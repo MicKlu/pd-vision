@@ -2,6 +2,7 @@
 
 from alg import BaseHsvBlobAlgorithm
 import alg.ref as ref
+import alg.custom as custom
 import cv2 as cv
 import numpy as np
 from matplotlib import pyplot as plt
@@ -105,22 +106,31 @@ if __name__ == "__main__":
     ### Load image
     img_difficulty = "easy" # easy, moderate, hard, extreme
     
-    img_index = 1
+    img_index = 4
     img_path = f"imgs/{img_difficulty}_samples/img{img_index}.jpg"
     print(img_path)
 
     print()
 
-    ### Reference algorithm
-    s_threshs = { "easy": [17, 125, 39, 159, 40], "moderate": [65, 64, 30, 77, 78, 39, 52, 123, 79]}
-    v_threshs = { "easy": [94, 156, 100, 72, 93], "moderate": [64, 37, 37, 36, 36, 99, 94, 102, 31]}
+    test_case = "custom" # ref, custom
 
-    ref_alg = ref.ReferenceAlgorithm(img_path, s_threshs[img_difficulty][img_index], v_threshs[img_difficulty][img_index])
-    count = ref_alg.count()
+    if test_case == "ref":
+        ### Reference algorithm
+        s_threshs = { "easy": [17, 125, 39, 159, 40], "moderate": [65, 64, 30, 77, 78, 39, 52, 123, 79]}
+        v_threshs = { "easy": [94, 156, 100, 72, 93], "moderate": [64, 37, 37, 36, 36, 99, 94, 102, 31]}
 
-    print("### Reference algorithm ###")
-    print(f"All blobs: {len(ref_alg.blobs)}")
-    print(f"Valid blobs / Counted objects: {count}\n")
+        ref_alg = ref.ReferenceAlgorithm(img_path, s_threshs[img_difficulty][img_index], v_threshs[img_difficulty][img_index])
+        count = ref_alg.count()
 
-    plot_results(ref_alg, backend="opencv")
-    hist.show_histogram(ref_alg.img_prep_hsv, color="hsv")
+        print("### Reference algorithm ###")
+        print(f"All blobs: {len(ref_alg.blobs)}")
+        print(f"Valid blobs / Counted objects: {count}\n")
+
+        plot_results(ref_alg, backend="opencv")
+        hist.show_histogram(ref_alg.img_prep_hsv, color="hsv")
+    elif test_case == "custom":
+        ### Custom algorithm
+        custom_alg = custom.CustomHsvBlobAlgorithm(img_path)
+        count = custom_alg.count()
+
+        plot_results(custom_alg, backend="opencv")

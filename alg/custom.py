@@ -5,6 +5,11 @@ from scipy import optimize, signal
 
 class CustomHsvBlobAlgorithm(ReferenceAlgorithm):
 
+    def __init__(self, img_path):
+        super().__init__(img_path)
+
+        self._min_blob_size = math.ceil(math.pi * 7**2)
+
     def _preprocessing(self):
         super()._preprocessing()
 
@@ -132,57 +137,37 @@ class CustomHsvBlobAlgorithm(ReferenceAlgorithm):
         return a / (sigma * np.sqrt(2 * np.pi)) * np.exp(-(x - mu)**2 / (2 * sigma**2))
 
     def _morphology(self):
-        self.img_s_morphed = self._morph_s_channel(np.copy(self.img_s_thresh))
-        self.img_v_morphed = self._morph_v_channel(np.copy(self.img_v_thresh))
+        self.img_bitwise = cv.bitwise_or(self.img_s_thresh, self.img_v_thresh)
+        sv_blobs = self._separate(self.img_bitwise)
 
-        # BEGIN for now
-        self.img_bitwise = cv.bitwise_and(self.img_s_thresh, self.img_v_thresh)
-        self.img_morphed = self.img_bitwise
-        # END for now
+        img_sv_morphed_big = np.copy(sv_blobs[0])
 
-    def _morph_s_channel(self, channel):
-        # _, _, stats, _ = cv.connectedComponentsWithStats(channel, connectivity=8)
-        # for s in stats:
-        #     if s[cv.CC_STAT_AREA] <= 1:
-        #         channel[s[cv.CC_STAT_TOP], s[cv.CC_STAT_LEFT]] = 0
+        img_sv_morphed_big = self._closing_with_filling(img_sv_morphed_big, (17, 17))
+        kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, (7, 7))
+        img_sv_morphed_big = cv.morphologyEx(img_sv_morphed_big, cv.MORPH_OPEN, kernel, iterations=1)
 
-        # contours, hierarchy = cv.findContours(channel, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE)
-        # for c in contours:
-        #     if cv.contourArea(c) <= 1: # TODO: 4 px != 1 px
-        #         cv.drawContours(channel, [c], 0, 0, -1)
+        self.img_morphed = img_sv_morphed_big
 
-        return channel
-        kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, (11, 11))
-        channel = cv.morphologyEx(channel, cv.MORPH_DILATE, kernel)
-        channel = self._fill_holes(channel)
-        kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, (11, 11))
-        channel = cv.morphologyEx(channel, cv.MORPH_ERODE, kernel)
+    def _separate(self, img):
+        contours, hierarchy = cv.findContours(img, cv.RETR_CCOMP, cv.CHAIN_APPROX_SIMPLE)
+        areas = np.array([ cv.contourArea(c) for c in contours ])
+        avg = np.average(areas)
+        
+        print(areas.min())
+        print(areas.max())
+        print(avg)
 
-        kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, (5, 5))
-        channel = cv.morphologyEx(channel, cv.MORPH_OPEN, kernel, iterations=3)
-        return channel
+        big_blobs = np.zeros_like(img)
+        for c in contours:
+            if cv.contourArea(c) > avg:
+                cv.drawContours(big_blobs, [c], 0, 255, -1)
 
-    def _morph_v_channel(self, channel):
-        # _, _, stats, _ = cv.connectedComponentsWithStats(channel, connectivity=8)
-        # for s in stats:
-        #     if s[cv.CC_STAT_AREA] <= 1:
-        #         channel[s[cv.CC_STAT_TOP], s[cv.CC_STAT_LEFT]] = 0
+        small_blobs = img - big_blobs
 
-        # contours, hierarchy = cv.findContours(channel, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE)
-        # for c in contours:
-        #     if cv.contourArea(c) <= 1: # TODO: 4 px != 1 px
-        #         cv.drawContours(channel, [c], 0, 0, -1)
+        return (big_blobs, small_blobs)
 
-        # kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, (11, 11))
-        # channel = cv.morphologyEx(channel, cv.MORPH_ERODE, kernel)
-
-        return channel
-        kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, (11, 11))
-        channel = cv.morphologyEx(channel, cv.MORPH_DILATE, kernel)
-        channel = self._fill_holes(channel)
-        kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, (11, 11))
-        channel = cv.morphologyEx(channel, cv.MORPH_ERODE, kernel)
-
-        kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, (5, 5))
-        channel = cv.morphologyEx(channel, cv.MORPH_OPEN, kernel, iterations=3)
-        return channel
+    def _closing_with_filling(self, img, ksize=(3, 3)):
+        kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, ksize)
+        img = cv.morphologyEx(img, cv.MORPH_DILATE, kernel)
+        img = self._fill_holes(img)
+        return cv.morphologyEx(img, cv.MORPH_ERODE, kernel)
