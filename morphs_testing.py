@@ -155,7 +155,7 @@ if __name__ == "__main__":
     
     ### Load image
     img_difficulty = "easy" # easy, moderate, hard, extreme
-    img_index = 4
+    img_index = 0
 
     img_path = f"imgs/{img_difficulty}_samples/img{img_index}.jpg"
     
@@ -294,3 +294,5 @@ if __name__ == "__main__":
     results = (img_s_morphed, img_v_morphed, img_sv_morphed_and, img_sv_morphed_or)
 
     plot_morphs(alg, s_blobs, v_blobs, s_morphs, v_morphs, results)
+
+    cv.imwrite(f"morphs_testing_out/img_{img_index}.png", img_sv_morphed_and)

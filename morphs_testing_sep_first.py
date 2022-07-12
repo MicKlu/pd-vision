@@ -234,3 +234,5 @@ if __name__ == "__main__":
     results = (img_small_morphed, img_big_morphed, img_sv_morphed_and, img_sv_morphed_or)
 
     plot_morphs(alg, s_blobs, v_blobs, s_morphs, v_morphs, results)
+
+    cv.imwrite(f"morphs_testing_out/img_{img_index}_sep_first.png", img_sv_morphed_or)

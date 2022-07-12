@@ -50,59 +50,10 @@ def plot_morphs(alg: CustomHsvBlobAlgorithm, img_sv_thresh, sv_blobs: tuple, img
     plt.imshow(sv_blobs[0], cmap="gray")
     plt.axis("off")
 
-    # # V-small
-    # plt.subplot(*sdims, 7)
-    # plt.imshow(v_blobs[1], cmap="gray")
-    # plt.axis("off")
-
-    # # V-big
-    # plt.subplot(*sdims, 8)
-    # plt.imshow(v_blobs[0], cmap="gray")
-    # plt.axis("off")
-
-    # # S-small morphed
-    # plt.subplot(*sdims, 9)
-    # plt.imshow(s_morphs[1], cmap="gray")
-    # plt.axis("off")
-
     # SV-big morphed
     plt.subplot(*sdims, 10)
     plt.imshow(img_sv_morphed_big, cmap="gray")
     plt.axis("off")
-
-    # # V-small morphed
-    # plt.subplot(*sdims, 11)
-    # plt.imshow(v_morphs[1], cmap="gray")
-    # plt.axis("off")
-
-    # # V-big morphed
-    # plt.subplot(*sdims, 12)
-    # plt.imshow(v_morphs[0], cmap="gray")
-    # plt.axis("off")
-
-    # # S morphed
-    # img_s_morphed = results[0]
-    # plt.subplot(*sdims, 13)
-    # plt.imshow(img_s_morphed, cmap="gray")
-    # plt.axis("off")
-
-    # # V morphed
-    # img_v_morphed = results[1]
-    # plt.subplot(*sdims, 15)
-    # plt.imshow(img_v_morphed, cmap="gray")
-    # plt.axis("off")
-
-    # # SV morphed AND
-    # img_sv_morphed = results[2]
-    # plt.subplot(*sdims, 16)
-    # plt.imshow(img_sv_morphed, cmap="gray")
-    # plt.axis("off")
-
-    # # SV morphed OR
-    # img_sv_morphed = results[3]
-    # plt.subplot(*sdims, 14)
-    # plt.imshow(img_sv_morphed, cmap="gray")
-    # plt.axis("off")
 
     plt.tight_layout()
     plt.show()
@@ -181,16 +132,6 @@ if __name__ == "__main__":
 
     # END SV-big morph
 
-    # s_morphs = (img_s_morphed_big, img_s_morphed_small)
-    # v_morphs = (img_v_morphed_big, img_v_morphed_small)
-
-
-    # # S morphed
-    # img_s_morphed = cv.bitwise_or(*s_morphs)
-
-    # # V morphed
-    # img_v_morphed = cv.bitwise_or(*v_morphs)
-
     # # SV morphed AND
     # img_sv_morphed_and = cv.bitwise_and(img_s_morphed, img_v_morphed)
     # kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, (5, 5))
@@ -202,3 +143,5 @@ if __name__ == "__main__":
     # results = (img_s_morphed, img_v_morphed, img_sv_morphed_and, img_sv_morphed_or)
 
     plot_morphs(alg, img_sv_thresh, sv_blobs, img_sv_morphed_big)
+
+    cv.imwrite(f"morphs_testing_out/img_{img_index}_sum_first.png", img_sv_morphed_big)
