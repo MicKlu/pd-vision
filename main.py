@@ -14,6 +14,25 @@ def plot_results(alg: BaseHsvBlobAlgorithm, backend="matplotlib"):
 
     img_output = np.copy(alg.img_original_bgr)
     cv.drawContours(img_output, alg.blobs, -1, (0, 0, 255), 3)
+
+    for blob in alg.blobs:
+        hull = cv.convexHull(blob)
+        cv.drawContours(img_output, [hull], 0, (0, 255, 0), 1)
+        blob_area = float(cv.contourArea(blob))
+        hull_area = cv.contourArea(hull)
+
+        if hull_area == 0:
+            solidity = 1
+        else:
+            solidity = blob_area / hull_area
+
+        if solidity >= 0.9:
+            continue
+
+        leftmost = tuple(blob[blob[:,:,0].argmin()][0])
+        topmost = tuple(blob[blob[:,:,1].argmin()][0])
+
+        cv.putText(img_output, f"{solidity:.3f}", (leftmost[0], topmost[1] - 5), cv.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1, cv.LINE_AA)
     
     for l in alg.valid_blobs:
         pt1 = (l["stats"][cv.CC_STAT_LEFT], l["stats"][cv.CC_STAT_TOP])
@@ -106,7 +125,7 @@ if __name__ == "__main__":
     ### Load image
     img_difficulty = "easy" # easy, moderate, hard, extreme
     
-    img_index = 4
+    img_index = 2
     img_path = f"imgs/{img_difficulty}_samples/img{img_index}.jpg"
     print(img_path)
 

@@ -9,6 +9,7 @@ class CustomHsvBlobAlgorithm(ReferenceAlgorithm):
         super().__init__(img_path)
 
         self._min_blob_size = math.ceil(math.pi * 7**2)
+        self.safe_area = 0.8
 
     def _preprocessing(self):
         super()._preprocessing()
@@ -146,6 +147,15 @@ class CustomHsvBlobAlgorithm(ReferenceAlgorithm):
         kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, (7, 7))
         img_sv_morphed_big = cv.morphologyEx(img_sv_morphed_big, cv.MORPH_OPEN, kernel, iterations=1)
 
+        img_sv_morphed_big = self._remove_border_blobs(img_sv_morphed_big)
+
+        while True:
+            img_separated = self._separate_blobs(img_sv_morphed_big)
+            if np.all(img_separated == img_sv_morphed_big):
+                img_sv_morphed_big = img_separated
+                break
+            img_sv_morphed_big = img_separated
+
         self.img_morphed = img_sv_morphed_big
 
     def _separate(self, img):
@@ -171,3 +181,159 @@ class CustomHsvBlobAlgorithm(ReferenceAlgorithm):
         img = cv.morphologyEx(img, cv.MORPH_DILATE, kernel)
         img = self._fill_holes(img)
         return cv.morphologyEx(img, cv.MORPH_ERODE, kernel)
+
+    def _remove_border_blobs(self, img_morphed):
+        blobs, _ = cv.findContours(img_morphed, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+
+        img_height = np.size(img_morphed, 0)
+        img_width = np.size(img_morphed, 1)
+        offset_v = (1 - self.safe_area) * img_height / 2
+        offset_h = (1 - self.safe_area) * img_width / 2
+
+        for blob in blobs:
+            moments = cv.moments(blob)
+
+            cx = int(moments['m10']/moments['m00'])
+            cy = int(moments['m01']/moments['m00'])
+
+            if not ((cx < offset_h or cx > img_width - offset_h)
+                    or (cy < offset_v or cy > img_height - offset_v)):
+                continue
+
+            cv.drawContours(img_morphed, [blob], 0, 0, -1)
+
+        return img_morphed
+
+    def _separate_blobs(self, img_morphed):
+        blobs, _ = cv.findContours(img_morphed, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+
+        for blob in blobs:
+            hull = cv.convexHull(blob)
+
+            blob_area = float(cv.contourArea(blob))
+            hull_area = cv.contourArea(hull)
+
+            if hull_area == 0:
+                solidity = 1
+            else:
+                solidity = blob_area / hull_area
+
+            if solidity > 0.75:
+                continue
+
+            leftmost = tuple(blob[blob[:,:,0].argmin()][0])
+            rightmost = tuple(blob[blob[:,:,0].argmax()][0])
+            topmost = tuple(blob[blob[:,:,1].argmin()][0])
+            bottommost = tuple(blob[blob[:,:,1].argmax()][0])
+
+            defect_points = self._get_convexity_defect_points(blob)
+
+            if len(defect_points) < 2:
+                continue
+
+            blob_canvas = np.zeros_like(img_morphed)
+            cv.drawContours(blob_canvas, [blob], 0, 255, -1)
+            cv.drawContours(img_morphed, [blob], 0, 0, -1)
+
+            blob_canvas_bgr = cv.cvtColor(blob_canvas, cv.COLOR_GRAY2BGR)
+
+            for defect in defect_points:
+                cv.putText(blob_canvas_bgr, f"{defect['distance']}", (defect['coords'][0], defect['coords'][1] - 5), cv.FONT_HERSHEY_COMPLEX_SMALL, 0.5, [255, 0, 0], 1, cv.LINE_AA)
+                cv.circle(blob_canvas_bgr, defect['coords'], 2, [0,0,255], -1)
+
+                closest_defect = None
+                min_d = np.inf
+                for other_defect in defect_points:
+                    if other_defect is defect:
+                        continue
+
+                    ax, ay = defect['coords']
+                    bx, by = other_defect['coords']
+
+                    d = math.sqrt((ax - bx) ** 2 + (ay - by) ** 2)
+                    if d < min_d:
+                        min_d = d
+                        closest_defect = other_defect
+
+                if not closest_defect:
+                    continue
+
+                cv.line(blob_canvas_bgr, defect['coords'], closest_defect['coords'], [0, 0, 0])
+                cv.line(blob_canvas, defect['coords'], closest_defect['coords'], [0, 0, 0])
+
+            blob_roi = blob_canvas[topmost[1]:bottommost[1], leftmost[0]:rightmost[0]]
+            blob_roi_bgr = blob_canvas_bgr[topmost[1]:bottommost[1], leftmost[0]:rightmost[0]]
+
+            img_canvas = np.copy(self.img_original_bgr)
+            cv.drawContours(img_canvas, [blob], 0, [0, 0, 255], 3)
+            img_roi = img_canvas[topmost[1]:bottommost[1], leftmost[0]:rightmost[0]]
+
+            cv.imshow("dsa", blob_roi_bgr)
+            cv.imshow("ewq", img_roi)
+
+            print()
+            print(f"Area: {blob_area}")
+            print(f"Solidity: {solidity}")
+            print()
+
+            cv.waitKey()
+
+            ksize = (7, 7)
+            if blob_area < 1000:
+                ksize = (5, 5)
+            if blob_area < 500:
+                ksize = (3, 3)
+
+            kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, ksize)
+            blob_canvas = cv.morphologyEx(blob_canvas, cv.MORPH_ERODE, kernel, iterations=1)
+            blob_canvas_bgr = cv.morphologyEx(blob_canvas_bgr, cv.MORPH_ERODE, kernel, iterations=1)
+
+            img_morphed = cv.bitwise_or(img_morphed, blob_canvas)
+
+            blob_roi = blob_canvas[topmost[1]:bottommost[1], leftmost[0]:rightmost[0]]
+            blob_roi_bgr = blob_canvas_bgr[topmost[1]:bottommost[1], leftmost[0]:rightmost[0]]
+
+            new_blobs, _ = cv.findContours(blob_roi, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+
+            for new_blob in new_blobs:
+                new_hull = cv.convexHull(new_blob)
+                new_blob_area = float(cv.contourArea(new_blob))
+                new_hull_area = cv.contourArea(new_hull)
+
+                if new_hull_area == 0:
+                    new_solidity = 1
+                else:
+                    new_solidity = new_blob_area / new_hull_area
+
+                cv.drawContours(blob_roi_bgr, [new_hull], 0, (0, 255, 0), 1)
+
+                new_leftmost = tuple(new_blob[new_blob[:,:,0].argmin()][0])
+                new_topmost = tuple(new_blob[new_blob[:,:,1].argmin()][0])
+
+                cv.putText(blob_roi_bgr, f"{new_solidity:.3f}", (new_leftmost[0], new_topmost[1] - 5), cv.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1, cv.LINE_AA)
+                print(new_solidity)
+
+            cv.imshow("dsa", blob_roi_bgr)
+
+            cv.waitKey()
+
+        return img_morphed
+
+    def _get_convexity_defect_points(self, blob):
+        defect_points = []
+
+        hull_indices = cv.convexHull(blob, returnPoints=False)
+        try:
+            defects = cv.convexityDefects(blob, hull_indices)
+
+            for defect in defects:
+                _, _, far_idx, d = defect[0]
+                far = blob[far_idx][0]
+                if d < 3000:
+                    continue
+                defect_points.append({
+                    'coords': far,
+                    'distance': d
+                })
+        finally:
+            return defect_points
