@@ -1,0 +1,821 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>719</width>
+    <height>537</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Zliczanie obiektów</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
+   <property name="minimumSize">
+    <size>
+     <width>425</width>
+     <height>0</height>
+    </size>
+   </property>
+   <layout class="QVBoxLayout" name="verticalLayout_3">
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <item>
+       <layout class="QVBoxLayout" name="verticalLayout">
+        <item>
+         <widget class="QComboBox" name="imageComboLeft">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <item>
+           <property name="text">
+            <string>Oryginalny obraz</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Wstępne przetwarzanie</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Wstępne przetwarzanie (przestrzeń H)</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Wstępne przetwarzanie (przestrzeń S)</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Wstępne przetwarzanie (przestrzeń V)</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Progowanie (przestrzeń H)</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Progowanie (przestrzeń S)</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Progowanie (przestrzeń V)</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Operacje morfologiczne (przestrzeń S)</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Operacje morfologiczne (przestrzeń V)</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Operacje morfologiczne</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Zliczanie</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+        <item>
+         <widget class="ImageWidget" name="imagePreviewLeft">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+          <property name="scaledContents">
+           <bool>false</bool>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QVBoxLayout" name="verticalLayout_2">
+        <item>
+         <widget class="QComboBox" name="imageComboRight">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="currentText">
+           <string>Zliczanie</string>
+          </property>
+          <property name="currentIndex">
+           <number>11</number>
+          </property>
+          <item>
+           <property name="text">
+            <string>Oryginalny obraz</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Wstępne przetwarzanie</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Wstępne przetwarzanie (przestrzeń H)</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Wstępne przetwarzanie (przestrzeń S)</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Wstępne przetwarzanie (przestrzeń V)</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Progowanie (przestrzeń H)</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Progowanie (przestrzeń S)</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Progowanie (przestrzeń V)</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Operacje morfologiczne (przestrzeń S)</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Operacje morfologiczne (przestrzeń V)</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Operacje morfologiczne</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Zliczanie</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+        <item>
+         <widget class="ImageWidget" name="imagePreviewRight">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+          <property name="scaledContents">
+           <bool>false</bool>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <widget class="QTabWidget" name="algorithmTabs">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="currentIndex">
+       <number>0</number>
+      </property>
+      <widget class="QWidget" name="refAlgorithmTab">
+       <attribute name="title">
+        <string>Algorytm referencyjny</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_5">
+        <item>
+         <layout class="QFormLayout" name="formLayout_2">
+          <item row="0" column="0">
+           <widget class="QLabel" name="sThresholdLabel">
+            <property name="text">
+             <string>Próg S</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <layout class="QHBoxLayout" name="horizontalLayout_10">
+            <item>
+             <widget class="QSlider" name="sThresholdSlider">
+              <property name="maximum">
+               <number>256</number>
+              </property>
+              <property name="tracking">
+               <bool>true</bool>
+              </property>
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="invertedAppearance">
+               <bool>false</bool>
+              </property>
+              <property name="invertedControls">
+               <bool>false</bool>
+              </property>
+              <property name="tickPosition">
+               <enum>QSlider::NoTicks</enum>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QSpinBox" name="sThresholdSpin">
+              <property name="minimumSize">
+               <size>
+                <width>86</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="wrapping">
+               <bool>false</bool>
+              </property>
+              <property name="frame">
+               <bool>true</bool>
+              </property>
+              <property name="buttonSymbols">
+               <enum>QAbstractSpinBox::UpDownArrows</enum>
+              </property>
+              <property name="maximum">
+               <number>256</number>
+              </property>
+              <property name="displayIntegerBase">
+               <number>10</number>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="vThresholdLabel">
+            <property name="text">
+             <string>Próg V</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <layout class="QHBoxLayout" name="horizontalLayout_9">
+            <item>
+             <widget class="QSlider" name="vThresholdSlider">
+              <property name="maximum">
+               <number>256</number>
+              </property>
+              <property name="tracking">
+               <bool>true</bool>
+              </property>
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="invertedAppearance">
+               <bool>false</bool>
+              </property>
+              <property name="invertedControls">
+               <bool>false</bool>
+              </property>
+              <property name="tickPosition">
+               <enum>QSlider::NoTicks</enum>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QSpinBox" name="vThresholdSpin">
+              <property name="minimumSize">
+               <size>
+                <width>86</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="maximum">
+               <number>256</number>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="refMinSizeLabel">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="text">
+             <string>Minimalny rozmiar</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <layout class="QHBoxLayout" name="horizontalLayout_7">
+            <item>
+             <widget class="QSlider" name="refMinSizeSlider">
+              <property name="maximum">
+               <number>10000</number>
+              </property>
+              <property name="tracking">
+               <bool>true</bool>
+              </property>
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="invertedAppearance">
+               <bool>false</bool>
+              </property>
+              <property name="invertedControls">
+               <bool>false</bool>
+              </property>
+              <property name="tickPosition">
+               <enum>QSlider::NoTicks</enum>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QSpinBox" name="refMinSizeSpin">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>86</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="maximum">
+               <number>10000</number>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="customAlgorithmTab">
+       <attribute name="title">
+        <string>Algorytm własny</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_4">
+        <item>
+         <layout class="QFormLayout" name="formLayout">
+          <item row="0" column="0">
+           <widget class="QLabel" name="customMinSizeLabel">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="text">
+             <string>Minimalny rozmiar</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <layout class="QHBoxLayout" name="horizontalLayout_5">
+            <item>
+             <widget class="QSlider" name="customMinSizeSlider">
+              <property name="maximum">
+               <number>10000</number>
+              </property>
+              <property name="value">
+               <number>154</number>
+              </property>
+              <property name="tracking">
+               <bool>true</bool>
+              </property>
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="invertedAppearance">
+               <bool>false</bool>
+              </property>
+              <property name="invertedControls">
+               <bool>false</bool>
+              </property>
+              <property name="tickPosition">
+               <enum>QSlider::NoTicks</enum>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QSpinBox" name="customMinSizeSpin">
+              <property name="minimumSize">
+               <size>
+                <width>86</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="maximum">
+               <number>10000</number>
+              </property>
+              <property name="value">
+               <number>154</number>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="safeZoneLabel">
+            <property name="text">
+             <string>Strefa bezpieczna</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <layout class="QHBoxLayout" name="horizontalLayout_4">
+            <item>
+             <widget class="QSlider" name="safeZoneSlider">
+              <property name="maximum">
+               <number>10000</number>
+              </property>
+              <property name="singleStep">
+               <number>10</number>
+              </property>
+              <property name="pageStep">
+               <number>100</number>
+              </property>
+              <property name="value">
+               <number>8000</number>
+              </property>
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QDoubleSpinBox" name="safeZoneSpin">
+              <property name="minimumSize">
+               <size>
+                <width>86</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="maximum">
+               <double>100.000000000000000</double>
+              </property>
+              <property name="value">
+               <double>80.000000000000000</double>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
+     </widget>
+    </item>
+    <item>
+     <widget class="QFrame" name="frame">
+      <property name="minimumSize">
+       <size>
+        <width>0</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="frameShape">
+       <enum>QFrame::Box</enum>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Sunken</enum>
+      </property>
+      <property name="lineWidth">
+       <number>1</number>
+      </property>
+      <layout class="QFormLayout" name="formLayout_3">
+       <item row="0" column="0">
+        <widget class="QLabel" name="detectedLabel">
+         <property name="frameShape">
+          <enum>QFrame::NoFrame</enum>
+         </property>
+         <property name="midLineWidth">
+          <number>0</number>
+         </property>
+         <property name="text">
+          <string>Wykryte obiekty:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QLabel" name="detectedValueLabel">
+         <property name="text">
+          <string>-</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="executionTimeLabel">
+         <property name="text">
+          <string>Czas wykonywania:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QLabel" name="executionTimeValueLabel">
+         <property name="text">
+          <string>-</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout_3">
+      <item>
+       <spacer name="horizontalSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QComboBox" name="algorithmCombo">
+        <item>
+         <property name="text">
+          <string>Algorytm referencyjny</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Algorytm własny</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="countButton">
+        <property name="text">
+         <string>Zlicz obiekty</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>719</width>
+     <height>29</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>Plik</string>
+    </property>
+    <addaction name="actionOpen"/>
+    <addaction name="separator"/>
+    <addaction name="actionExit"/>
+   </widget>
+   <addaction name="menuFile"/>
+  </widget>
+  <action name="actionOpen">
+   <property name="text">
+    <string>Wczytaj obraz...</string>
+   </property>
+  </action>
+  <action name="actionExit">
+   <property name="text">
+    <string>Zamknij</string>
+   </property>
+  </action>
+  <action name="actionSave">
+   <property name="text">
+    <string>Zapisz...</string>
+   </property>
+   <property name="toolTip">
+    <string>Zapisz obraz</string>
+   </property>
+  </action>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>ImageWidget</class>
+   <extends>QLabel</extends>
+   <header>ui/image_widget</header>
+  </customwidget>
+ </customwidgets>
+ <tabstops>
+  <tabstop>imageComboLeft</tabstop>
+  <tabstop>imageComboRight</tabstop>
+  <tabstop>algorithmTabs</tabstop>
+  <tabstop>sThresholdSlider</tabstop>
+  <tabstop>sThresholdSpin</tabstop>
+  <tabstop>vThresholdSlider</tabstop>
+  <tabstop>vThresholdSpin</tabstop>
+  <tabstop>refMinSizeSlider</tabstop>
+  <tabstop>refMinSizeSpin</tabstop>
+  <tabstop>customMinSizeSlider</tabstop>
+  <tabstop>customMinSizeSpin</tabstop>
+  <tabstop>safeZoneSlider</tabstop>
+  <tabstop>safeZoneSpin</tabstop>
+  <tabstop>algorithmCombo</tabstop>
+  <tabstop>countButton</tabstop>
+ </tabstops>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>sThresholdSlider</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>sThresholdSpin</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>610</x>
+     <y>318</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>696</x>
+     <y>310</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>vThresholdSlider</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>vThresholdSpin</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>610</x>
+     <y>357</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>696</x>
+     <y>349</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>sThresholdSpin</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>sThresholdSlider</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>696</x>
+     <y>310</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>610</x>
+     <y>318</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>vThresholdSpin</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>vThresholdSlider</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>696</x>
+     <y>349</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>610</x>
+     <y>357</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>customMinSizeSlider</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>customMinSizeSpin</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>559</x>
+     <y>306</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>628</x>
+     <y>308</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>refMinSizeSlider</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>refMinSizeSpin</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>563</x>
+     <y>390</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>629</x>
+     <y>388</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>refMinSizeSpin</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>refMinSizeSlider</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>624</x>
+     <y>375</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>425</x>
+     <y>384</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>customMinSizeSpin</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>customMinSizeSlider</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>627</x>
+     <y>297</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>582</x>
+     <y>296</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>

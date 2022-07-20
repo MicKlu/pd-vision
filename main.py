@@ -1,155 +1,63 @@
 #!/usr/bin/python3
 
-from alg import BaseHsvBlobAlgorithm
-import alg.ref as ref
-import alg.custom as custom
-import cv2 as cv
-import numpy as np
-from matplotlib import pyplot as plt
-import os
 import sys
-import hist
 
-def plot_results(alg: BaseHsvBlobAlgorithm, backend="matplotlib"):
+from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QMessageBox
+from PyQt5.Qt import QMimeDatabase
+from ui.main_window import Ui_MainWindow
+from worker import CountingWorker, CountingWorkerError
 
-    img_output = np.copy(alg.img_original_bgr)
-    cv.drawContours(img_output, alg.blobs, -1, (0, 0, 255), 3)
+class MainWindow(QMainWindow, Ui_MainWindow):
 
-    for blob in alg.blobs:
-        hull = cv.convexHull(blob)
-        cv.drawContours(img_output, [hull], 0, (0, 255, 0), 1)
-        blob_area = float(cv.contourArea(blob))
-        hull_area = cv.contourArea(hull)
+    def __init__(self, parent=None):
+        super().__init__(parent)
 
-        if hull_area == 0:
-            solidity = 1
-        else:
-            solidity = blob_area / hull_area
+        self.__worker = None
 
-        if solidity >= 0.9:
-            continue
+        self.setupUi(self)
+        self.__connect_signals_and_slots()
 
-        leftmost = tuple(blob[blob[:,:,0].argmin()][0])
-        topmost = tuple(blob[blob[:,:,1].argmin()][0])
+    def __connect_signals_and_slots(self):
+        self.safeZoneSlider.valueChanged.connect(self.__safe_zone_slider2spin)
+        self.safeZoneSpin.valueChanged.connect(self.__safe_zone_spin2slider)
 
-        cv.putText(img_output, f"{solidity:.3f}", (leftmost[0], topmost[1] - 5), cv.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1, cv.LINE_AA)
-    
-    for l in alg.valid_blobs:
-        pt1 = (l["stats"][cv.CC_STAT_LEFT], l["stats"][cv.CC_STAT_TOP])
-        pt2 = (pt1[0] + l["stats"][cv.CC_STAT_WIDTH], pt1[1] + l["stats"][cv.CC_STAT_HEIGHT])
-        cv.rectangle(img_output, pt1, pt2, (255, 0, 0), 3)
-    
-    if backend == "matplotlib":
-        plt.figure()
+        self.actionExit.triggered.connect(self.__quit)
+        self.actionOpen.triggered.connect(self.__open)
 
-        rows, cols = (4, 3)
+    def __open(self):
+        mimes = ["image/jpeg", "image/png"]
+        
+        mime_db = QMimeDatabase()
+        filter = []
+        for m in mimes:
+            filter += mime_db.mimeTypeForName(m).globPatterns()
+        filter = f"Wspierane obrazy ({' '.join(filter)})"
 
-        plt.subplot(rows, cols, 1)
-        plt.imshow(cv.cvtColor(alg.img_original_bgr, cv.COLOR_BGR2RGB))
-        plt.axis("off")
-        plt.title("Input")
+        file_path = QFileDialog.getOpenFileName(self, filter=filter)[0]
 
-        plt.subplot(rows, cols, 2)
-        plt.imshow(cv.cvtColor(alg.img_prep_bgr, cv.COLOR_BGR2RGB))
-        plt.axis("off")
-        plt.title("Preprocessed")
+        try:
+            self.__worker = CountingWorker(self, file_path)
+        except CountingWorkerError as e:
+            msgBox = QMessageBox(self)
+            msgBox.setWindowTitle("Błąd")
+            msgBox.setText(e.args[0])
+            msgBox.setStandardButtons(QMessageBox.Ok)
+            msgBox.setIcon(QMessageBox.Warning)
+            msgBox.exec()
 
-        plt.subplot(rows, cols, 3)
-        plt.imshow(cv.cvtColor(img_output, cv.COLOR_BGR2RGB))
-        plt.axis("off")
-        plt.title("Output")
+    def __quit(self):
+        self.close()
 
-        plt.subplot(rows, cols, 4)
-        plt.imshow(alg.img_prep_h, cmap="gray")
-        plt.axis("off")
-        plt.title("H plane")
+    def __safe_zone_slider2spin(self, value: int):
+        self.safeZoneSpin.setValue(value / 100)
 
-        plt.subplot(rows, cols, 5)
-        plt.imshow(alg.img_prep_s, cmap="gray")
-        plt.axis("off")
-        plt.title("S plane")
-
-        plt.subplot(rows, cols, 6)
-        plt.imshow(alg.img_prep_v, cmap="gray")
-        plt.axis("off")
-        plt.title("V plane")
-
-        plt.subplot(rows, cols, 7)
-        plt.imshow(alg.img_h_thresh, cmap="gray")
-        plt.axis("off")
-        plt.title("H plane thresholded")
-
-        plt.subplot(rows, cols, 8)
-        plt.imshow(alg.img_s_thresh, cmap="gray")
-        plt.axis("off")
-        plt.title("S plane thresholded")
-
-        plt.subplot(rows, cols, 9)
-        plt.imshow(alg.img_v_thresh, cmap="gray")
-        plt.axis("off")
-        plt.title("V plane thresholded")
-
-        plt.subplot(rows, cols, 10)
-        plt.imshow(alg.img_bitwise, cmap="gray")
-        plt.axis("off")
-        plt.title("Bitwise operations")
-
-        plt.subplot(rows, cols, 11)
-        plt.imshow(alg.img_morphed, cmap="gray")
-        plt.axis("off")
-        plt.title("Morphology operations")
-
-        plt.subplots_adjust(hspace=0.2, wspace=0.1)
-        # plt.tight_layout()
-        plt.show()
-    elif backend == "opencv":
-        empty_img = np.full_like(alg.img_original_bgr, 0)
-
-        result_img = np.vstack((
-            np.hstack((alg.img_original_bgr, alg.img_prep_bgr, img_output)),
-            np.hstack((cv.cvtColor(alg.img_prep_h, cv.COLOR_GRAY2BGR), cv.cvtColor(alg.img_prep_s, cv.COLOR_GRAY2BGR), cv.cvtColor(alg.img_prep_v, cv.COLOR_GRAY2BGR))),
-            np.hstack((cv.cvtColor(alg.img_h_thresh, cv.COLOR_GRAY2BGR), cv.cvtColor(alg.img_s_thresh, cv.COLOR_GRAY2BGR), cv.cvtColor(alg.img_v_thresh, cv.COLOR_GRAY2BGR))),
-            np.hstack((cv.cvtColor(alg.img_bitwise, cv.COLOR_GRAY2BGR), cv.cvtColor(alg.img_morphed, cv.COLOR_GRAY2BGR), empty_img))
-        ))
-
-        cv.namedWindow("Results", cv.WINDOW_NORMAL)
-        cv.imshow("Results", result_img)
-        cv.imwrite("/tmp/results.png", result_img)
-
-        while True:
-            if cv.waitKey() == 27:
-                break
+    def __safe_zone_spin2slider(self, value: int):
+        self.safeZoneSlider.setValue(round(value * 100))
 
 if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    window = MainWindow()
+    window.show()
 
-    ### Load image
-    img_difficulty = "easy" # easy, moderate, hard, extreme
-    
-    img_index = 2
-    img_path = f"imgs/{img_difficulty}_samples/img{img_index}.jpg"
-    print(img_path)
+    sys.exit(app.exec())
 
-    print()
-
-    test_case = "custom" # ref, custom
-
-    if test_case == "ref":
-        ### Reference algorithm
-        s_threshs = { "easy": [17, 125, 39, 159, 40], "moderate": [65, 64, 30, 77, 78, 39, 52, 123, 79]}
-        v_threshs = { "easy": [94, 156, 100, 72, 93], "moderate": [64, 37, 37, 36, 36, 99, 94, 102, 31]}
-
-        ref_alg = ref.ReferenceAlgorithm(img_path, s_threshs[img_difficulty][img_index], v_threshs[img_difficulty][img_index])
-        count = ref_alg.count()
-
-        print("### Reference algorithm ###")
-        print(f"All blobs: {len(ref_alg.blobs)}")
-        print(f"Valid blobs / Counted objects: {count}\n")
-
-        plot_results(ref_alg, backend="opencv")
-        hist.show_histogram(ref_alg.img_prep_hsv, color="hsv")
-    elif test_case == "custom":
-        ### Custom algorithm
-        custom_alg = custom.CustomHsvBlobAlgorithm(img_path)
-        count = custom_alg.count()
-
-        plot_results(custom_alg, backend="opencv")
