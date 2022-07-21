@@ -18,11 +18,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.__connect_signals_and_slots()
 
     def __connect_signals_and_slots(self):
-        self.safeZoneSlider.valueChanged.connect(self.__safe_zone_slider2spin)
-        self.safeZoneSpin.valueChanged.connect(self.__safe_zone_spin2slider)
+        self.safeAreaSlider.valueChanged.connect(self.__safe_area_slider2spin)
+        self.safeAreaSpin.valueChanged.connect(self.__safe_area_spin2slider)
 
         self.actionExit.triggered.connect(self.__quit)
         self.actionOpen.triggered.connect(self.__open)
+
+        self.countButton.clicked.connect(self.__count)
 
     def __open(self):
         mimes = ["image/jpeg", "image/png"]
@@ -37,6 +39,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         try:
             self.__worker = CountingWorker(self, file_path)
+
+            self.countButton.setEnabled(True)
+            self.algorithmCombo.setEnabled(True)
+            self.imageComboLeft.setCurrentIndex(0)
+            self.imageComboLeft.setEnabled(False)
+            self.imageComboRight.setCurrentIndex(self.imageComboRight.count() - 1)
+            self.imageComboRight.setEnabled(False)
         except CountingWorkerError as e:
             msgBox = QMessageBox(self)
             msgBox.setWindowTitle("Błąd")
@@ -45,14 +54,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             msgBox.setIcon(QMessageBox.Warning)
             msgBox.exec()
 
+    def __count(self):
+        self.__worker.count()
+
     def __quit(self):
         self.close()
 
-    def __safe_zone_slider2spin(self, value: int):
-        self.safeZoneSpin.setValue(value / 100)
+    def __safe_area_slider2spin(self, value: int):
+        self.safeAreaSpin.setValue(value / 100)
 
-    def __safe_zone_spin2slider(self, value: int):
-        self.safeZoneSlider.setValue(round(value * 100))
+    def __safe_area_spin2slider(self, value: int):
+        self.safeAreaSlider.setValue(round(value * 100))
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
