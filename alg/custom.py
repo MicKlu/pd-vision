@@ -1,6 +1,5 @@
 from . import *
 from alg.ref import ReferenceAlgorithm
-import hist_filter as hf
 from scipy import optimize, signal
 
 class CustomHsvBlobAlgorithm(ReferenceAlgorithm):
@@ -8,7 +7,7 @@ class CustomHsvBlobAlgorithm(ReferenceAlgorithm):
     def __init__(self, img_path):
         super().__init__(img_path)
 
-        self._min_blob_size = math.ceil(math.pi * 7**2)
+        self.min_blob_size = math.ceil(math.pi * 7**2)
         self.safe_area = 0.8
 
     def _preprocessing(self):

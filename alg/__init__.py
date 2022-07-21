@@ -85,7 +85,7 @@ class BaseHsvBlobAlgorithm(BaseBlobAlgorithm):
         self.valid_blobs = None
 
         self._label_connectivity = 8
-        self._min_blob_size = 500
+        self.min_blob_size = 500
 
     def _preprocessing(self):
         self.img_prep_bgr = np.copy(self.img_original_bgr)
@@ -113,7 +113,7 @@ class BaseHsvBlobAlgorithm(BaseBlobAlgorithm):
 
         for label in self.labels:
             size = label["stats"][cv.CC_STAT_AREA]
-            if size >= self._min_blob_size:
+            if size >= self.min_blob_size:
                 self.valid_blobs.append(label)
                 self.count_result += 1
 
