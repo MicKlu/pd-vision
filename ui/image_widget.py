@@ -12,11 +12,16 @@ class ImageWidget(QLabel):
 
     def setImage(self, pixmap: QPixmap):
         self.__pixmap = pixmap
+        
+        if self.__pixmap.isNull():
+            self.setPixmap(pixmap)
+            return
+
         self.__scalePixmap()
 
     def __scalePixmap(self):
         if self.__pixmap.isNull():
             return
 
-        scaled_pixmap = self.__pixmap.scaled(self.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation)
+        scaled_pixmap = self.__pixmap.scaled(self.size(), Qt.KeepAspectRatio)
         self.setPixmap(scaled_pixmap)

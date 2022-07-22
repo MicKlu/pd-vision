@@ -267,15 +267,10 @@ class CustomHsvBlobAlgorithm(ReferenceAlgorithm):
             cv.drawContours(img_canvas, [blob], 0, [0, 0, 255], 3)
             img_roi = img_canvas[topmost[1]:bottommost[1], leftmost[0]:rightmost[0]]
 
-            cv.imshow("dsa", blob_roi_bgr)
-            cv.imshow("ewq", img_roi)
-
             print()
             print(f"Area: {blob_area}")
             print(f"Solidity: {solidity}")
             print()
-
-            cv.waitKey()
 
             ksize = (7, 7)
             if blob_area < 1000:
@@ -311,10 +306,6 @@ class CustomHsvBlobAlgorithm(ReferenceAlgorithm):
 
                 cv.putText(blob_roi_bgr, f"{new_solidity:.3f}", (new_leftmost[0], new_topmost[1] - 5), cv.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1, cv.LINE_AA)
                 print(new_solidity)
-
-            cv.imshow("dsa", blob_roi_bgr)
-
-            cv.waitKey()
 
         return img_morphed
 

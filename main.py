@@ -26,6 +26,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.countButton.clicked.connect(self.__count)
 
+        self.imageComboLeft.currentIndexChanged.connect(self.update_image_left)
+        self.imageComboRight.currentIndexChanged.connect(self.update_image_right)
+
     def __open(self):
         mimes = ["image/jpeg", "image/png"]
         
@@ -37,6 +40,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         file_path = QFileDialog.getOpenFileName(self, filter=filter)[0]
 
+        if file_path == "":
+            return
+
         try:
             self.__worker = CountingWorker(self, file_path)
 
@@ -46,6 +52,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.imageComboLeft.setEnabled(False)
             self.imageComboRight.setCurrentIndex(self.imageComboRight.count() - 1)
             self.imageComboRight.setEnabled(False)
+            self.update_image_right(self.imageComboRight.currentIndex())
         except CountingWorkerError as e:
             msgBox = QMessageBox(self)
             msgBox.setWindowTitle("Błąd")
@@ -57,8 +64,29 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def __count(self):
         self.__worker.count()
 
+        self.imageComboLeft.setEnabled(True)
+        self.imageComboRight.setEnabled(True)
+
     def __quit(self):
         self.close()
+
+    def __update_image_preview(self, preview_id: int, image_index: int):
+        pixmap = self.__worker.get_image(image_index)
+
+        if preview_id == 0:
+            self.imagePreviewLeft.setImage(pixmap)
+        elif preview_id == 1:
+            self.imagePreviewRight.setImage(pixmap)
+
+    def update_image_left(self, image_index=None):
+        if image_index is None:
+            image_index = self.imageComboLeft.currentIndex()
+        self.__update_image_preview(0, image_index)
+
+    def update_image_right(self, image_index=None):
+        if image_index is None:
+            image_index = self.imageComboRight.currentIndex()
+        self.__update_image_preview(1, image_index)
 
     def __safe_area_slider2spin(self, value: int):
         self.safeAreaSpin.setValue(value / 100)

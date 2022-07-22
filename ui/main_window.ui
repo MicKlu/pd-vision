@@ -84,16 +84,6 @@
           </item>
           <item>
            <property name="text">
-            <string>Operacje morfologiczne (przestrzeń S)</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Operacje morfologiczne (przestrzeń V)</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
             <string>Operacje morfologiczne</string>
            </property>
           </item>
@@ -145,10 +135,10 @@
            </sizepolicy>
           </property>
           <property name="currentText">
-           <string>Zliczanie</string>
+           <string>Oryginalny obraz</string>
           </property>
           <property name="currentIndex">
-           <number>11</number>
+           <number>0</number>
           </property>
           <item>
            <property name="text">
@@ -188,16 +178,6 @@
           <item>
            <property name="text">
             <string>Progowanie (przestrzeń V)</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Operacje morfologiczne (przestrzeń S)</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Operacje morfologiczne (przestrzeń V)</string>
            </property>
           </item>
           <item>
