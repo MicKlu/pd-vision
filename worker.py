@@ -1,3 +1,8 @@
+import os
+import tempfile
+from pathlib import Path
+import shutil
+
 import cv2 as cv
 import numpy as np
 
@@ -34,11 +39,11 @@ class CountingWorker:
         self.__alg = None
         self.__alg_id = None
 
-        img = cv.imread(img_path)
-        if img is None:
+        self.__img = cv.imread(img_path)
+        if self.__img is None:
             raise CountingWorkerError("Plik nie może być otwarty")
 
-        pixmap = self.__opencv2pixmap(img)
+        pixmap = self.__opencv2pixmap(self.__img)
         window.imagePreviewLeft.setImage(pixmap)
 
     def count(self):
@@ -62,30 +67,46 @@ class CountingWorker:
         self.__window.update_image_left()
         self.__window.update_image_right()
 
-    def get_image(self, image_index: int):
-        pixmap = QPixmap()
+    def save_image(self, save_path: str, image_index: int):
+        img = self.get_image(image_index)
 
-        if self.__alg is None:
-            return pixmap
+        save_path = Path(save_path)
+        temp_file = str(Path.joinpath(Path(tempfile.gettempdir()), (save_path.stem + ".png")))
+        cv.imwrite(temp_file, img)
+
+        try:
+            shutil.move(temp_file, save_path)
+        except PermissionError:
+            os.remove(temp_file)
+            raise CountingWorkerError("Nie można zapisać pliku: brak dostępu")
+        except:
+            raise CountingWorkerError("Nie można zapisać pliku")
+
+    def get_image(self, image_index: int):
+        img = None
 
         if image_index == CountingWorker.IMAGE_ORIGINAL:
-            pixmap = self.__opencv2pixmap(self.__alg.img_original_bgr)
-        elif image_index == CountingWorker.IMAGE_PREPROCESSED:
-            pixmap = self.__opencv2pixmap(self.__alg.img_prep_bgr)
+            img = self.__img
+
+        if self.__alg is None:
+            return img
+
+        if image_index == CountingWorker.IMAGE_PREPROCESSED:
+            img = self.__alg.img_prep_bgr
         elif image_index == CountingWorker.IMAGE_PREPROCESSED_H:
-            pixmap = self.__opencv2pixmap(self.__alg.img_prep_h, QImage.Format_Grayscale8)
+            img = self.__alg.img_prep_h
         elif image_index == CountingWorker.IMAGE_PREPROCESSED_S:
-            pixmap = self.__opencv2pixmap(self.__alg.img_prep_s, QImage.Format_Grayscale8)
+            img = self.__alg.img_prep_s
         elif image_index == CountingWorker.IMAGE_PREPROCESSED_V:
-            pixmap = self.__opencv2pixmap(self.__alg.img_prep_v, QImage.Format_Grayscale8)
+            img = self.__alg.img_prep_v
         elif image_index == CountingWorker.IMAGE_THRESHOLD_H:
-            pixmap = self.__opencv2pixmap(self.__alg.img_h_thresh, QImage.Format_Grayscale8)
+            img = self.__alg.img_h_thresh
         elif image_index == CountingWorker.IMAGE_THRESHOLD_S:
-            pixmap = self.__opencv2pixmap(self.__alg.img_s_thresh, QImage.Format_Grayscale8)
+            img = self.__alg.img_s_thresh
         elif image_index == CountingWorker.IMAGE_THRESHOLD_V:
-            pixmap = self.__opencv2pixmap(self.__alg.img_v_thresh, QImage.Format_Grayscale8)
+            img = self.__alg.img_v_thresh
         elif image_index == CountingWorker.IMAGE_MORPHED:
-            pixmap = self.__opencv2pixmap(self.__alg.img_morphed, QImage.Format_Grayscale8)
+            img = self.__alg.img_morphed
         elif image_index == CountingWorker.IMAGE_COUNTING:
             img_output = np.copy(self.__alg.img_original_bgr)
             cv.drawContours(img_output, self.__alg.blobs, -1, (0, 0, 255), 3)
@@ -95,7 +116,23 @@ class CountingWorker:
                 pt2 = (pt1[0] + l["stats"][cv.CC_STAT_WIDTH], pt1[1] + l["stats"][cv.CC_STAT_HEIGHT])
                 cv.rectangle(img_output, pt1, pt2, (255, 0, 0), 3)
 
-            pixmap = self.__opencv2pixmap(img_output)
+            img = img_output
+
+        return img
+
+    def get_pixmap(self, image_index: int):
+        pixmap = QPixmap()
+
+        if self.__alg is None:
+            return pixmap
+
+        img = self.get_image(image_index)
+
+        if (image_index >= CountingWorker.IMAGE_PREPROCESSED_H
+                and image_index <= CountingWorker.IMAGE_MORPHED):
+            pixmap = self.__opencv2pixmap(img, QImage.Format_Grayscale8)
+        else:
+            pixmap = self.__opencv2pixmap(img)
 
         return pixmap
 

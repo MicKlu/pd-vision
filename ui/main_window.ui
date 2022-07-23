@@ -108,6 +108,9 @@
             <height>0</height>
            </size>
           </property>
+          <property name="contextMenuPolicy">
+           <enum>Qt::ActionsContextMenu</enum>
+          </property>
           <property name="text">
            <string/>
           </property>
@@ -205,6 +208,9 @@
             <width>0</width>
             <height>0</height>
            </size>
+          </property>
+          <property name="contextMenuPolicy">
+           <enum>Qt::ActionsContextMenu</enum>
           </property>
           <property name="text">
            <string/>
@@ -708,12 +714,36 @@
     <string>Zamknij</string>
    </property>
   </action>
-  <action name="actionSave">
+  <action name="actionSaveLeft">
    <property name="text">
     <string>Zapisz...</string>
    </property>
    <property name="toolTip">
     <string>Zapisz obraz</string>
+   </property>
+  </action>
+  <action name="actionSaveRight">
+   <property name="text">
+    <string>Zapisz...</string>
+   </property>
+   <property name="toolTip">
+    <string>Zapisz obraz</string>
+   </property>
+  </action>
+  <action name="actionShowHistogramLeft">
+   <property name="text">
+    <string>Histogram</string>
+   </property>
+   <property name="toolTip">
+    <string>Wyświetl histogram</string>
+   </property>
+  </action>
+  <action name="actionShowHistogramRight">
+   <property name="text">
+    <string>Histogram</string>
+   </property>
+   <property name="toolTip">
+    <string>Wyświetl histogram</string>
    </property>
   </action>
  </widget>

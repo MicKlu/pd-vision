@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 import sys
+from pathlib import Path
 
 from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QMessageBox
 from PyQt5.Qt import QMimeDatabase
@@ -17,6 +18,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setupUi(self)
         self.__connect_signals_and_slots()
 
+    def setupUi(self, MainWindow):
+        super().setupUi(MainWindow)
+
+        self.imagePreviewLeft.addAction(self.actionShowHistogramLeft)
+        self.imagePreviewRight.addAction(self.actionShowHistogramRight)
+
+        self.imagePreviewLeft.addAction(self.actionSaveLeft)
+        self.imagePreviewRight.addAction(self.actionSaveRight)
+
+        self.actionSaveLeft.setEnabled(False)
+        self.actionSaveRight.setEnabled(False)
+        self.actionShowHistogramLeft.setEnabled(False)
+        self.actionShowHistogramRight.setEnabled(False)
+
     def __connect_signals_and_slots(self):
         self.safeAreaSlider.valueChanged.connect(self.__safe_area_slider2spin)
         self.safeAreaSpin.valueChanged.connect(self.__safe_area_spin2slider)
@@ -28,6 +43,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.imageComboLeft.currentIndexChanged.connect(self.update_image_left)
         self.imageComboRight.currentIndexChanged.connect(self.update_image_right)
+
+        self.actionSaveLeft.triggered.connect(self.__save_image_left)
+        self.actionSaveRight.triggered.connect(self.__save_image_right)
 
     def __open(self):
         mimes = ["image/jpeg", "image/png"]
@@ -53,13 +71,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.imageComboRight.setCurrentIndex(self.imageComboRight.count() - 1)
             self.imageComboRight.setEnabled(False)
             self.update_image_right(self.imageComboRight.currentIndex())
+
+            self.actionSaveLeft.setEnabled(True)
+            self.actionSaveRight.setEnabled(False)
+            self.actionShowHistogramLeft.setEnabled(True)
+            self.actionShowHistogramRight.setEnabled(False)
         except CountingWorkerError as e:
-            msgBox = QMessageBox(self)
-            msgBox.setWindowTitle("Błąd")
-            msgBox.setText(e.args[0])
-            msgBox.setStandardButtons(QMessageBox.Ok)
-            msgBox.setIcon(QMessageBox.Warning)
-            msgBox.exec()
+            self.__show_warning("Błąd", e.args[0])
 
     def __count(self):
         self.__worker.count()
@@ -67,11 +85,36 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.imageComboLeft.setEnabled(True)
         self.imageComboRight.setEnabled(True)
 
+        self.actionSaveRight.setEnabled(True)
+        self.actionShowHistogramRight.setEnabled(True)
+
     def __quit(self):
         self.close()
 
+    def __save_image(self, preview_id: int):
+        image_index = 0
+
+        if preview_id == 0:
+            image_index = self.imageComboLeft.currentIndex()
+        elif preview_id == 1:
+            image_index = self.imageComboRight.currentIndex()
+
+        filter = f"Obraz PNG (*.png)"
+
+        save_path = QFileDialog.getSaveFileName(filter=filter)[0]
+        try:
+            self.__worker.save_image(save_path, image_index)
+        except CountingWorkerError as e:
+            self.__show_warning("Błąd", e.args[0])
+
+    def __save_image_left(self):
+        self.__save_image(0)
+
+    def __save_image_right(self):
+        self.__save_image(1)
+
     def __update_image_preview(self, preview_id: int, image_index: int):
-        pixmap = self.__worker.get_image(image_index)
+        pixmap = self.__worker.get_pixmap(image_index)
 
         if preview_id == 0:
             self.imagePreviewLeft.setImage(pixmap)
@@ -93,6 +136,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def __safe_area_spin2slider(self, value: int):
         self.safeAreaSlider.setValue(round(value * 100))
+
+    def __show_warning(self, title: str, text: str):
+        msgBox = QMessageBox(self)
+        msgBox.setWindowTitle(title)
+        msgBox.setText(text)
+        msgBox.setStandardButtons(QMessageBox.Ok)
+        msgBox.setIcon(QMessageBox.Warning)
+        msgBox.exec()
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
