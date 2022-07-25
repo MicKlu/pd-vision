@@ -5,6 +5,7 @@ import shutil
 
 import cv2 as cv
 import numpy as np
+from matplotlib import pyplot as plt
 
 from PyQt5.Qt import Qt
 from PyQt5.Qt import QImage, QPixmap
@@ -81,6 +82,50 @@ class CountingWorker:
             raise CountingWorkerError("Nie można zapisać pliku: brak dostępu")
         except:
             raise CountingWorkerError("Nie można zapisać pliku")
+
+    def show_histogram(self, image_index: int):
+        img = self.get_image(image_index)
+
+        if img is None:
+            return
+
+        channels = 1
+        bins = 256
+
+        if (image_index in [
+                CountingWorker.IMAGE_ORIGINAL,
+                CountingWorker.IMAGE_PREPROCESSED,
+                CountingWorker.IMAGE_COUNTING
+                ]):
+            channels = 3
+
+        if (image_index in [
+                CountingWorker.IMAGE_PREPROCESSED_H,
+                CountingWorker.IMAGE_THRESHOLD_H,
+                ]):
+            bins = 180
+
+        plt.figure("Histogram", figsize=(8,4), dpi=72, clear=True)
+        plt.ion()
+
+        if channels == 1:
+            plt.hist(img.ravel(), bins, [0, bins])
+        elif channels == 3:
+            hist_r = cv.calcHist([img],[2],None,[256],[0,256])
+            hist_g = cv.calcHist([img],[1],None,[256],[0,256])
+            hist_b = cv.calcHist([img],[0],None,[256],[0,256])
+            plt.plot(hist_r, "r")
+            plt.plot(hist_g, "g")
+            plt.plot(hist_b, "b")
+
+        plt.xlabel(r"Poziom jasności $r_k$")
+        plt.ylabel(r"Liczba pikseli $h(r_k)$")
+
+        plt.xlim(0, bins - 1)
+
+        plt.tight_layout(pad=0.01)
+
+        plt.show()
 
     def get_image(self, image_index: int):
         img = None

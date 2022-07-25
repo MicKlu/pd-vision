@@ -6,6 +6,7 @@ from pathlib import Path
 from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QMessageBox
 from PyQt5.Qt import QMimeDatabase
 from ui.main_window import Ui_MainWindow
+
 from worker import CountingWorker, CountingWorkerError
 
 class MainWindow(QMainWindow, Ui_MainWindow):
@@ -46,6 +47,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.actionSaveLeft.triggered.connect(self.__save_image_left)
         self.actionSaveRight.triggered.connect(self.__save_image_right)
+
+        self.actionShowHistogramLeft.triggered.connect(self.__show_histogram_left)
+        self.actionShowHistogramRight.triggered.connect(self.__show_histogram_right)
 
     def __open(self):
         mimes = ["image/jpeg", "image/png"]
@@ -102,6 +106,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         filter = f"Obraz PNG (*.png)"
 
         save_path = QFileDialog.getSaveFileName(filter=filter)[0]
+
+        if save_path == "":
+            return
+
         try:
             self.__worker.save_image(save_path, image_index)
         except CountingWorkerError as e:
@@ -112,6 +120,22 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def __save_image_right(self):
         self.__save_image(1)
+
+    def __show_histogram(self, preview_id: int):
+        image_index = 0
+
+        if preview_id == 0:
+            image_index = self.imageComboLeft.currentIndex()
+        elif preview_id == 1:
+            image_index = self.imageComboRight.currentIndex()
+
+        self.__worker.show_histogram(image_index)
+
+    def __show_histogram_left(self):
+        self.__show_histogram(0)
+
+    def __show_histogram_right(self):
+        self.__show_histogram(1)
 
     def __update_image_preview(self, preview_id: int, image_index: int):
         pixmap = self.__worker.get_pixmap(image_index)
