@@ -7,6 +7,8 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QMessageBox
 from PyQt5.Qt import QMimeDatabase
 from ui.main_window import Ui_MainWindow
 
+from matplotlib import pyplot as plt
+
 from worker import CountingWorker, CountingWorkerError
 
 class MainWindow(QMainWindow, Ui_MainWindow):
@@ -168,6 +170,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         msgBox.setStandardButtons(QMessageBox.Ok)
         msgBox.setIcon(QMessageBox.Warning)
         msgBox.exec()
+
+    def closeEvent(self, ev):
+        super().closeEvent(ev)
+        plt.close('all')
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
