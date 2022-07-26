@@ -49,6 +49,21 @@
           </item>
           <item>
            <property name="text">
+            <string>Oryginalny obraz (przestrzeń H)</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Oryginalny obraz (przestrzeń S)</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Oryginalny obraz (przestrzeń V)</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
             <string>Wstępne przetwarzanie</string>
            </property>
           </item>
@@ -146,6 +161,21 @@
           <item>
            <property name="text">
             <string>Oryginalny obraz</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Oryginalny obraz (przestrzeń H)</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Oryginalny obraz (przestrzeń S)</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Oryginalny obraz (przestrzeń V)</string>
            </property>
           </item>
           <item>

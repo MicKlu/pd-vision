@@ -24,15 +24,18 @@ class CountingWorker:
     ALGORITHM_CUSTOM = 1
 
     IMAGE_ORIGINAL = 0
-    IMAGE_PREPROCESSED = 1
-    IMAGE_PREPROCESSED_H = 2
-    IMAGE_PREPROCESSED_S = 3
-    IMAGE_PREPROCESSED_V = 4
-    IMAGE_THRESHOLD_H = 5
-    IMAGE_THRESHOLD_S = 6
-    IMAGE_THRESHOLD_V = 7
-    IMAGE_MORPHED = 8
-    IMAGE_COUNTING = 9
+    IMAGE_ORIGINAL_H = 1
+    IMAGE_ORIGINAL_S = 2
+    IMAGE_ORIGINAL_V = 3
+    IMAGE_PREPROCESSED = 4
+    IMAGE_PREPROCESSED_H = 5
+    IMAGE_PREPROCESSED_S = 6
+    IMAGE_PREPROCESSED_V = 7
+    IMAGE_THRESHOLD_H = 8
+    IMAGE_THRESHOLD_S = 9
+    IMAGE_THRESHOLD_V = 10
+    IMAGE_MORPHED = 11
+    IMAGE_COUNTING = 12
 
     def __init__(self, window: 'MainWindow', img_path: str):
         self.__window = window
@@ -100,6 +103,7 @@ class CountingWorker:
             channels = 3
 
         if (image_index in [
+                CountingWorker.IMAGE_ORIGINAL_H,
                 CountingWorker.IMAGE_PREPROCESSED_H,
                 CountingWorker.IMAGE_THRESHOLD_H,
                 ]):
@@ -136,32 +140,45 @@ class CountingWorker:
         if self.__alg is None:
             return img
 
-        if image_index == CountingWorker.IMAGE_PREPROCESSED:
-            img = self.__alg.img_prep_bgr
-        elif image_index == CountingWorker.IMAGE_PREPROCESSED_H:
-            img = self.__alg.img_prep_h
-        elif image_index == CountingWorker.IMAGE_PREPROCESSED_S:
-            img = self.__alg.img_prep_s
-        elif image_index == CountingWorker.IMAGE_PREPROCESSED_V:
-            img = self.__alg.img_prep_v
-        elif image_index == CountingWorker.IMAGE_THRESHOLD_H:
-            img = self.__alg.img_h_thresh
-        elif image_index == CountingWorker.IMAGE_THRESHOLD_S:
-            img = self.__alg.img_s_thresh
-        elif image_index == CountingWorker.IMAGE_THRESHOLD_V:
-            img = self.__alg.img_v_thresh
-        elif image_index == CountingWorker.IMAGE_MORPHED:
-            img = self.__alg.img_morphed
-        elif image_index == CountingWorker.IMAGE_COUNTING:
-            img_output = np.copy(self.__alg.img_original_bgr)
-            cv.drawContours(img_output, self.__alg.blobs, -1, (0, 0, 255), 3)
+        if (image_index >= CountingWorker.IMAGE_ORIGINAL_H
+                and image_index <= CountingWorker.IMAGE_ORIGINAL_V):
 
-            for l in self.__alg.valid_blobs:
-                pt1 = (l["stats"][cv.CC_STAT_LEFT], l["stats"][cv.CC_STAT_TOP])
-                pt2 = (pt1[0] + l["stats"][cv.CC_STAT_WIDTH], pt1[1] + l["stats"][cv.CC_STAT_HEIGHT])
-                cv.rectangle(img_output, pt1, pt2, (255, 0, 0), 3)
+            img_hsv = cv.cvtColor(self.__alg.img_original_bgr, cv.COLOR_BGR2HSV)
+            (h,s,v) = cv.split(img_hsv)
 
-            img = img_output
+            if image_index == CountingWorker.IMAGE_ORIGINAL_H:
+                img = h
+            elif image_index == CountingWorker.IMAGE_ORIGINAL_S:
+                img = s
+            elif image_index == CountingWorker.IMAGE_ORIGINAL_V:
+                img = v
+        else:
+            if image_index == CountingWorker.IMAGE_PREPROCESSED:
+                img = self.__alg.img_prep_bgr
+            elif image_index == CountingWorker.IMAGE_PREPROCESSED_H:
+                img = self.__alg.img_prep_h
+            elif image_index == CountingWorker.IMAGE_PREPROCESSED_S:
+                img = self.__alg.img_prep_s
+            elif image_index == CountingWorker.IMAGE_PREPROCESSED_V:
+                img = self.__alg.img_prep_v
+            elif image_index == CountingWorker.IMAGE_THRESHOLD_H:
+                img = self.__alg.img_h_thresh
+            elif image_index == CountingWorker.IMAGE_THRESHOLD_S:
+                img = self.__alg.img_s_thresh
+            elif image_index == CountingWorker.IMAGE_THRESHOLD_V:
+                img = self.__alg.img_v_thresh
+            elif image_index == CountingWorker.IMAGE_MORPHED:
+                img = self.__alg.img_morphed
+            elif image_index == CountingWorker.IMAGE_COUNTING:
+                img_output = np.copy(self.__alg.img_original_bgr)
+                cv.drawContours(img_output, self.__alg.blobs, -1, (0, 0, 255), 3)
+
+                for l in self.__alg.valid_blobs:
+                    pt1 = (l["stats"][cv.CC_STAT_LEFT], l["stats"][cv.CC_STAT_TOP])
+                    pt2 = (pt1[0] + l["stats"][cv.CC_STAT_WIDTH], pt1[1] + l["stats"][cv.CC_STAT_HEIGHT])
+                    cv.rectangle(img_output, pt1, pt2, (255, 0, 0), 3)
+
+                img = img_output
 
         return img
 
@@ -173,8 +190,10 @@ class CountingWorker:
 
         img = self.get_image(image_index)
 
-        if (image_index >= CountingWorker.IMAGE_PREPROCESSED_H
-                and image_index <= CountingWorker.IMAGE_MORPHED):
+        if ((image_index >= CountingWorker.IMAGE_ORIGINAL_H
+                and image_index <= CountingWorker.IMAGE_ORIGINAL_V)
+                or (image_index >= CountingWorker.IMAGE_PREPROCESSED_H
+                and image_index <= CountingWorker.IMAGE_MORPHED)):
             pixmap = self.__opencv2pixmap(img, QImage.Format_Grayscale8)
         else:
             pixmap = self.__opencv2pixmap(img)
