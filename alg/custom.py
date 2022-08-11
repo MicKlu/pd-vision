@@ -11,6 +11,8 @@ class CustomHsvBlobAlgorithm(ReferenceAlgorithm):
         self.safe_area = 0.8
 
     def _preprocessing(self):
+
+        # Blurring and sharpening
         super()._preprocessing()
 
         img_hsv = cv.cvtColor(self.img_prep_bgr, cv.COLOR_BGR2HSV)
@@ -20,10 +22,10 @@ class CustomHsvBlobAlgorithm(ReferenceAlgorithm):
         self.img_prep_s_uneq = s
         self.img_prep_v_uneq = v
 
+        # Contrast enhancement
         v_norm = cv.equalizeHist(v)
 
-        # v_norm = cv.morphologyEx(v_norm, cv.MORPH_TOPHAT, (5, 5))
-        # kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, (25, 25))
+        # Lighting correction
         kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, (10, 10))
         v_norm = cv.morphologyEx(v_norm, cv.MORPH_TOPHAT, kernel)
 
@@ -42,30 +44,36 @@ class CustomHsvBlobAlgorithm(ReferenceAlgorithm):
         return super()._sharpening(img, np.array([[0, -1, 0], [-1, 5, -1], [0, -1, 0]]))
 
     def _thresholding(self):
+        # Apply color reduction
         self._color_reduction()
 
         self.img_s_h_masked = cv.bitwise_and(self.img_prep_s, self.h_mask)
         self.img_v_h_masked = cv.bitwise_and(cv.bitwise_not(self.img_prep_v), self.h_mask)
 
+        # Noise removal
         self.img_v_h_masked = cv.GaussianBlur(self.img_v_h_masked, (3, 3), 0)
 
+        # Find S space threshold
         s_hist = self._get_single_channel_histogram(self.img_s_h_masked)[1:]
-        v_hist = self._get_single_channel_histogram(self.img_v_h_masked)[1:]
 
         x = np.arange(1, 256)
         (a, mu, sigma) = self._fit_gauss(x, s_hist)
         s_pix_val = np.ceil(mu + 1.5 * sigma)
+
+        # v_hist = self._get_single_channel_histogram(self.img_v_h_masked)[1:]
 
         # peaks, _ = signal.find_peaks(np.append(v_hist, 0), np.average(v_hist))
         # v_pix_val = np.max(peaks)
 
         # v_pix_val = v_hist.tolist().index(v_hist.max()) + 0
 
+        # Constant V space threshold
         v_pix_val = 254
 
         print(s_pix_val)
         print(v_pix_val)
 
+        # Threshold S and V spaces
         _, self.img_s_thresh = cv.threshold(self.img_s_h_masked, s_pix_val, 255, cv.THRESH_BINARY)
         _, self.img_v_thresh = cv.threshold(self.img_v_h_masked, v_pix_val, 255, cv.THRESH_BINARY)
 
@@ -109,6 +117,7 @@ class CustomHsvBlobAlgorithm(ReferenceAlgorithm):
         return img_thresh
 
     def _fill_holes(self, img_hollow):
+        """Fill holes in binary image by finding all contours and filling them"""
         _, mask = cv.threshold(img_hollow, 0, 255, cv.THRESH_BINARY)
         cont, hier = cv.findContours(mask, cv.RETR_CCOMP, cv.CHAIN_APPROX_SIMPLE)
 
@@ -137,17 +146,23 @@ class CustomHsvBlobAlgorithm(ReferenceAlgorithm):
         return a / (sigma * np.sqrt(2 * np.pi)) * np.exp(-(x - mu)**2 / (2 * sigma**2))
 
     def _morphology(self):
-        self.img_bitwise = cv.bitwise_or(self.img_s_thresh, self.img_v_thresh)
-        sv_blobs = self._separate(self.img_bitwise)
 
+        # Sum S and V thresholds
+        self.img_bitwise = cv.bitwise_or(self.img_s_thresh, self.img_v_thresh)
+
+        # Remove small blobs
+        sv_blobs = self._separate(self.img_bitwise)
         img_sv_morphed_big = np.copy(sv_blobs[0])
 
+        # Closing and opening
         img_sv_morphed_big = self._closing_with_filling(img_sv_morphed_big, (17, 17))
         kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, (7, 7))
         img_sv_morphed_big = cv.morphologyEx(img_sv_morphed_big, cv.MORPH_OPEN, kernel, iterations=1)
 
+        # Apply safe area
         img_sv_morphed_big = self._remove_border_blobs(img_sv_morphed_big)
 
+        # Separate merged blobs
         while True:
             img_separated = self._separate_blobs(img_sv_morphed_big)
             if np.all(img_separated == img_sv_morphed_big):
@@ -234,12 +249,7 @@ class CustomHsvBlobAlgorithm(ReferenceAlgorithm):
             cv.drawContours(blob_canvas, [blob], 0, 255, -1)
             cv.drawContours(img_morphed, [blob], 0, 0, -1)
 
-            blob_canvas_bgr = cv.cvtColor(blob_canvas, cv.COLOR_GRAY2BGR)
-
             for defect in defect_points:
-                cv.putText(blob_canvas_bgr, f"{defect['distance']}", (defect['coords'][0], defect['coords'][1] - 5), cv.FONT_HERSHEY_COMPLEX_SMALL, 0.5, [255, 0, 0], 1, cv.LINE_AA)
-                cv.circle(blob_canvas_bgr, defect['coords'], 2, [0,0,255], -1)
-
                 closest_defect = None
                 min_d = np.inf
                 for other_defect in defect_points:
@@ -257,15 +267,7 @@ class CustomHsvBlobAlgorithm(ReferenceAlgorithm):
                 if not closest_defect:
                     continue
 
-                cv.line(blob_canvas_bgr, defect['coords'], closest_defect['coords'], [0, 0, 0])
                 cv.line(blob_canvas, defect['coords'], closest_defect['coords'], [0, 0, 0])
-
-            blob_roi = blob_canvas[topmost[1]:bottommost[1], leftmost[0]:rightmost[0]]
-            blob_roi_bgr = blob_canvas_bgr[topmost[1]:bottommost[1], leftmost[0]:rightmost[0]]
-
-            img_canvas = np.copy(self.img_original_bgr)
-            cv.drawContours(img_canvas, [blob], 0, [0, 0, 255], 3)
-            img_roi = img_canvas[topmost[1]:bottommost[1], leftmost[0]:rightmost[0]]
 
             print()
             print(f"Area: {blob_area}")
@@ -280,32 +282,8 @@ class CustomHsvBlobAlgorithm(ReferenceAlgorithm):
 
             kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, ksize)
             blob_canvas = cv.morphologyEx(blob_canvas, cv.MORPH_ERODE, kernel, iterations=1)
-            blob_canvas_bgr = cv.morphologyEx(blob_canvas_bgr, cv.MORPH_ERODE, kernel, iterations=1)
 
             img_morphed = cv.bitwise_or(img_morphed, blob_canvas)
-
-            blob_roi = blob_canvas[topmost[1]:bottommost[1], leftmost[0]:rightmost[0]]
-            blob_roi_bgr = blob_canvas_bgr[topmost[1]:bottommost[1], leftmost[0]:rightmost[0]]
-
-            new_blobs, _ = cv.findContours(blob_roi, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
-
-            for new_blob in new_blobs:
-                new_hull = cv.convexHull(new_blob)
-                new_blob_area = float(cv.contourArea(new_blob))
-                new_hull_area = cv.contourArea(new_hull)
-
-                if new_hull_area == 0:
-                    new_solidity = 1
-                else:
-                    new_solidity = new_blob_area / new_hull_area
-
-                cv.drawContours(blob_roi_bgr, [new_hull], 0, (0, 255, 0), 1)
-
-                new_leftmost = tuple(new_blob[new_blob[:,:,0].argmin()][0])
-                new_topmost = tuple(new_blob[new_blob[:,:,1].argmin()][0])
-
-                cv.putText(blob_roi_bgr, f"{new_solidity:.3f}", (new_leftmost[0], new_topmost[1] - 5), cv.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1, cv.LINE_AA)
-                print(new_solidity)
 
         return img_morphed
 
