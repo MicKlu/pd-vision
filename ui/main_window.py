@@ -320,6 +320,10 @@ class Ui_MainWindow(object):
         self.actionShowHistogramLeft.setObjectName("actionShowHistogramLeft")
         self.actionShowHistogramRight = QtWidgets.QAction(MainWindow)
         self.actionShowHistogramRight.setObjectName("actionShowHistogramRight")
+        self.actionShowImageLeft = QtWidgets.QAction(MainWindow)
+        self.actionShowImageLeft.setObjectName("actionShowImageLeft")
+        self.actionShowImageRight = QtWidgets.QAction(MainWindow)
+        self.actionShowImageRight.setObjectName("actionShowImageRight")
         self.menuFile.addAction(self.actionOpen)
         self.menuFile.addSeparator()
         self.menuFile.addAction(self.actionExit)
@@ -327,7 +331,7 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
         self.imageComboRight.setCurrentIndex(0)
-        self.algorithmTabs.setCurrentIndex(0)
+        self.algorithmTabs.setCurrentIndex(1)
         self.sThresholdSlider.valueChanged['int'].connect(self.sThresholdSpin.setValue) # type: ignore
         self.vThresholdSlider.valueChanged['int'].connect(self.vThresholdSpin.setValue) # type: ignore
         self.sThresholdSpin.valueChanged['int'].connect(self.sThresholdSlider.setValue) # type: ignore
@@ -410,4 +414,8 @@ class Ui_MainWindow(object):
         self.actionShowHistogramLeft.setToolTip(_translate("MainWindow", "Wyświetl histogram"))
         self.actionShowHistogramRight.setText(_translate("MainWindow", "Histogram"))
         self.actionShowHistogramRight.setToolTip(_translate("MainWindow", "Wyświetl histogram"))
+        self.actionShowImageLeft.setText(_translate("MainWindow", "Podgląd"))
+        self.actionShowImageLeft.setToolTip(_translate("MainWindow", "Wyświetl obraz w nowym oknie"))
+        self.actionShowImageRight.setText(_translate("MainWindow", "Podgląd"))
+        self.actionShowImageRight.setToolTip(_translate("MainWindow", "Wyświetl obraz w nowym oknie"))
 from ui.image_widget import ImageWidget

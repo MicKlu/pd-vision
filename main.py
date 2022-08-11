@@ -24,6 +24,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def setupUi(self, MainWindow):
         super().setupUi(MainWindow)
 
+        self.imagePreviewLeft.addAction(self.actionShowImageLeft)
+        self.imagePreviewRight.addAction(self.actionShowImageRight)
+
         self.imagePreviewLeft.addAction(self.actionShowHistogramLeft)
         self.imagePreviewRight.addAction(self.actionShowHistogramRight)
 
@@ -34,6 +37,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionSaveRight.setEnabled(False)
         self.actionShowHistogramLeft.setEnabled(False)
         self.actionShowHistogramRight.setEnabled(False)
+        self.actionShowImageLeft.setEnabled(False)
+        self.actionShowImageRight.setEnabled(False)
 
     def __connect_signals_and_slots(self):
         self.safeAreaSlider.valueChanged.connect(self.__safe_area_slider2spin)
@@ -52,6 +57,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.actionShowHistogramLeft.triggered.connect(self.__show_histogram_left)
         self.actionShowHistogramRight.triggered.connect(self.__show_histogram_right)
+
+        self.actionShowImageLeft.triggered.connect(self.__show_image_left)
+        self.actionShowImageRight.triggered.connect(self.__show_image_right)
 
     def __open(self):
         mimes = ["image/jpeg", "image/png"]
@@ -82,6 +90,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.actionSaveRight.setEnabled(False)
             self.actionShowHistogramLeft.setEnabled(True)
             self.actionShowHistogramRight.setEnabled(False)
+            self.actionShowImageLeft.setEnabled(True)
+            self.actionShowImageRight.setEnabled(False)
+
         except CountingWorkerError as e:
             self.__show_warning("Błąd", e.args[0])
 
@@ -93,17 +104,19 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.actionSaveRight.setEnabled(True)
         self.actionShowHistogramRight.setEnabled(True)
+        self.actionShowImageRight.setEnabled(True)
 
     def __quit(self):
         self.close()
 
-    def __save_image(self, preview_id: int):
-        image_index = 0
-
+    def __get_image_index(self, preview_id: int) -> int:
         if preview_id == 0:
-            image_index = self.imageComboLeft.currentIndex()
+            return self.imageComboLeft.currentIndex()
         elif preview_id == 1:
-            image_index = self.imageComboRight.currentIndex()
+            return self.imageComboRight.currentIndex()
+
+    def __save_image(self, preview_id: int):
+        image_index = self.__get_image_index(preview_id)
 
         filter = f"Obraz PNG (*.png)"
 
@@ -123,13 +136,19 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def __save_image_right(self):
         self.__save_image(1)
 
-    def __show_histogram(self, preview_id: int):
-        image_index = 0
+    def __show_image(self, preview_id: int):
+        image_index = self.__get_image_index(preview_id)
 
-        if preview_id == 0:
-            image_index = self.imageComboLeft.currentIndex()
-        elif preview_id == 1:
-            image_index = self.imageComboRight.currentIndex()
+        self.__worker.show_image(image_index)
+
+    def __show_image_left(self):
+        self.__show_image(0)
+
+    def __show_image_right(self):
+        self.__show_image(1)
+
+    def __show_histogram(self, preview_id: int):
+        image_index = self.__get_image_index(preview_id)
 
         self.__worker.show_histogram(image_index)
 

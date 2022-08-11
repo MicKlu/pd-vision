@@ -266,7 +266,7 @@
        </sizepolicy>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="refAlgorithmTab">
        <attribute name="title">
@@ -610,6 +610,16 @@
           </item>
          </layout>
         </item>
+        <item>
+         <widget class="QCheckBox" name="safeAreaDisplayCheck">
+          <property name="enabled">
+           <bool>true</bool>
+          </property>
+          <property name="text">
+           <string>Pokaż strefę bezpieczną</string>
+          </property>
+         </widget>
+        </item>
        </layout>
       </widget>
      </widget>
@@ -774,6 +784,22 @@
    </property>
    <property name="toolTip">
     <string>Wyświetl histogram</string>
+   </property>
+  </action>
+  <action name="actionShowImageLeft">
+   <property name="text">
+    <string>Podgląd</string>
+   </property>
+   <property name="toolTip">
+    <string>Wyświetl obraz w nowym oknie</string>
+   </property>
+  </action>
+  <action name="actionShowImageRight">
+   <property name="text">
+    <string>Podgląd</string>
+   </property>
+   <property name="toolTip">
+    <string>Wyświetl obraz w nowym oknie</string>
    </property>
   </action>
  </widget>

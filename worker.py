@@ -86,6 +86,12 @@ class CountingWorker:
         except:
             raise CountingWorkerError("Nie można zapisać pliku")
 
+    def show_image(self, image_index: int):
+        name = "preview"
+        cv.namedWindow(name, cv.WINDOW_NORMAL)
+        cv.setWindowTitle(name, "Podgląd obrazu")
+        cv.imshow(name, self.get_image(image_index))
+
     def show_histogram(self, image_index: int):
         img = self.get_image(image_index)
 
