@@ -57,8 +57,12 @@ class BaseBlobAlgorithm(BaseAlgorithm):
         kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, open_ksize)
         img_opened = cv.morphologyEx(img, cv.MORPH_OPEN, kernel, iterations=open_iterations)
 
+        cv.imwrite("out/morph_opened.png", img_opened)
+
         kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, close_ksize)
         img_closed = cv.morphologyEx(img_opened, cv.MORPH_CLOSE, kernel, iterations=close_iterations)
+
+        cv.imwrite("out/morph_closed.png", img_closed)
 
         return img_closed
     
@@ -90,16 +94,26 @@ class BaseHsvBlobAlgorithm(BaseBlobAlgorithm):
     def _preprocessing(self):
         self.img_prep_bgr = np.copy(self.img_original_bgr)
 
+        cv.imwrite("out/prep_orig.png", self.img_prep_bgr)
+
         self.img_prep_bgr = self._bluring(self.img_prep_bgr)
         self.img_prep_bgr = self._sharpening(self.img_prep_bgr)
+
+        cv.imwrite("out/prep_sharpened.png", self.img_prep_bgr)
 
     def _thresholding(self):
         self.img_prep_hsv = cv.cvtColor(self.img_prep_bgr, cv.COLOR_BGR2HSV)
         self.img_prep_h, self.img_prep_s, self.img_prep_v = cv.split(self.img_prep_hsv)
+        cv.imwrite("out/prep_h.png", self.img_prep_h)
+        cv.imwrite("out/prep_s.png", self.img_prep_s)
+        cv.imwrite("out/prep_v.png", self.img_prep_v)
 
     def _morphology(self):
         img_sv_thresh = cv.bitwise_and(self.img_s_thresh, self.img_v_thresh)
         self.img_bitwise = img_sv_thresh
+
+        cv.imwrite("out/thresh_sv.png", self.img_bitwise)
+        
         self.img_morphed = self._opening_closing(img_sv_thresh)
 
     def _extraction(self):
@@ -120,8 +134,10 @@ class BaseHsvBlobAlgorithm(BaseBlobAlgorithm):
     def _bluring(self, img, median_blur_ksize: int = 3, blur_ksize: tuple = (3, 3)):
         if median_blur_ksize is not None:
             img_blur = cv.medianBlur(img, median_blur_ksize)
+            cv.imwrite("out/prep_median_blurred.png", img_blur)
         if blur_ksize is not None:
             img_blur = cv.blur(img_blur, blur_ksize)
+            cv.imwrite("out/prep_avg_blurred.png", img_blur)
         return img_blur
 
     def _sharpening(self, img, kernel=None):

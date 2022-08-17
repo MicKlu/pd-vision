@@ -25,9 +25,14 @@ class CustomHsvBlobAlgorithm(ReferenceAlgorithm):
         # Contrast enhancement
         v_norm = cv.equalizeHist(v)
 
+        hsv_eq = cv.merge([h, s, v_norm])
+        bgr_eq = cv.cvtColor(hsv_eq, cv.COLOR_HSV2BGR)
+
         # Lighting correction
         kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, (10, 10))
         v_norm = cv.morphologyEx(v_norm, cv.MORPH_TOPHAT, kernel)
+
+        v_tophat_eq = cv.equalizeHist(v_norm)
 
         self.img_prep_h = h
         self.img_prep_s = s

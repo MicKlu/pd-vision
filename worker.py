@@ -10,7 +10,7 @@ from matplotlib import pyplot as plt
 from PyQt5.Qt import Qt
 from PyQt5.Qt import QImage, QPixmap
 
-from alg.ref import ReferenceAlgorithm
+from alg.ref import ReferenceAlgorithm, ReferenceAlgorithmToleranceCount
 from alg.custom import CustomHsvBlobAlgorithm
 
 class CountingWorkerError(Exception):
@@ -115,7 +115,7 @@ class CountingWorker:
                 ]):
             bins = 180
 
-        plt.figure("Histogram", figsize=(8,4), dpi=72, clear=True)
+        plt.figure("Histogram", figsize=(4,2), dpi=72, clear=True)
         plt.ion()
 
         if channels == 1:
@@ -127,6 +127,14 @@ class CountingWorker:
             plt.plot(hist_r, "r")
             plt.plot(hist_g, "g")
             plt.plot(hist_b, "b")
+
+        # max = np.max(np.histogram(img.ravel(), bins, [0,bins])[0])
+        # if image_index == CountingWorker.IMAGE_PREPROCESSED_S:
+        #     plt.bar([self.__alg.s_thresh_level], [max], color="r")
+
+        # if image_index == CountingWorker.IMAGE_PREPROCESSED_V:
+        #     plt.bar([self.__alg.v_thresh_level], [max], color="r")
+
 
         plt.xlabel(r"Poziom jasności $r_k$")
         plt.ylabel(r"Liczba pikseli $h(r_k)$")
@@ -177,12 +185,12 @@ class CountingWorker:
                 img = self.__alg.img_morphed
             elif image_index == CountingWorker.IMAGE_COUNTING:
                 img_output = np.copy(self.__alg.img_original_bgr)
-                cv.drawContours(img_output, self.__alg.blobs, -1, (0, 0, 255), 3)
+                # cv.drawContours(img_output, self.__alg.blobs, -1, (0, 0, 255), 3)
 
                 for l in self.__alg.valid_blobs:
                     pt1 = (l["stats"][cv.CC_STAT_LEFT], l["stats"][cv.CC_STAT_TOP])
                     pt2 = (pt1[0] + l["stats"][cv.CC_STAT_WIDTH], pt1[1] + l["stats"][cv.CC_STAT_HEIGHT])
-                    cv.rectangle(img_output, pt1, pt2, (255, 0, 0), 3)
+                    cv.rectangle(img_output, pt1, pt2, (255, 0, 0), 2)
 
                 img = img_output
 
@@ -208,6 +216,8 @@ class CountingWorker:
 
     def __setup_ref_algorithm(self):
         self.__alg = ReferenceAlgorithm(self.__img_path)
+        # self.__alg = ReferenceAlgorithmToleranceCount(self.__img_path)
+
         
         self.__alg.s_thresh_level = self.__window.sThresholdSpin.value()
         self.__alg.v_thresh_level = self.__window.vThresholdSpin.value()

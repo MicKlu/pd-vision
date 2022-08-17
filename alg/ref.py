@@ -11,6 +11,11 @@ class ReferenceAlgorithm(BaseHsvBlobAlgorithm):
         super()._thresholding()
         _, self.img_s_thresh = cv.threshold(self.img_prep_s, self.s_thresh_level, 255, cv.THRESH_BINARY)
         _, self.img_v_thresh = cv.threshold(self.img_prep_v, self.v_thresh_level, 255, cv.THRESH_BINARY_INV)
+
+        cv.imwrite("out/thresh_s.png", self.img_s_thresh)
+        cv.imwrite("out/thresh_v.png", cv.bitwise_not(self.img_v_thresh))
+        cv.imwrite("out/thresh_v_inv.png", self.img_v_thresh)
+
         self.img_h_thresh = np.full_like(self.img_prep_h, 255)
 
 class ReferenceAlgorithmToleranceCount(ReferenceAlgorithm):
