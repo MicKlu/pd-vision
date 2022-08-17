@@ -18,10 +18,6 @@ class CustomHsvBlobAlgorithm(ReferenceAlgorithm):
         img_hsv = cv.cvtColor(self.img_prep_bgr, cv.COLOR_BGR2HSV)
         h, s, v = cv.split(img_hsv)
 
-        self.img_prep_h_uneq = h
-        self.img_prep_s_uneq = s
-        self.img_prep_v_uneq = v
-
         # Contrast enhancement
         v_norm = cv.equalizeHist(v)
 
@@ -80,24 +76,24 @@ class CustomHsvBlobAlgorithm(ReferenceAlgorithm):
         self.img_h_thresh = self.h_mask
 
     def _color_reduction(self):
-        h_uneq = np.copy(self.img_prep_h_uneq)
+        h = np.copy(self.img_prep_h)
 
         # Move all zeros to 179 (almost same red color)
-        _, m = cv.threshold(h_uneq, 0, 179, cv.THRESH_BINARY_INV)
-        h_uneq = cv.bitwise_or(h_uneq, m)
+        _, m = cv.threshold(h, 0, 179, cv.THRESH_BINARY_INV)
+        h = cv.bitwise_or(h, m)
 
         # Remove most significant color
-        h_uneq_threshed = self._reduce_colors(h_uneq)
+        h_threshed = self._reduce_colors(h)
 
         for i in range(0, 3):   # max 5; optimal 3
-            h_uneq_threshed = self._reduce_colors(h_uneq_threshed)
+            h_threshed = self._reduce_colors(h_threshed)
 
-        h_uneq_threshed = self._reduce_colors(h_uneq_threshed, close=True)
+        h_threshed = self._reduce_colors(h_threshed, close=True)
 
-        mask = self._fill_holes(h_uneq_threshed)
-        h_uneq_threshed = cv.bitwise_and(h_uneq, mask)
+        mask = self._fill_holes(h_threshed)
+        h_threshed = cv.bitwise_and(h, mask)
 
-        _, self.h_mask = cv.threshold(h_uneq_threshed, 1, 255, cv.THRESH_BINARY)
+        _, self.h_mask = cv.threshold(h_threshed, 1, 255, cv.THRESH_BINARY)
 
     def _reduce_colors(self, img_h, close=False):
         img_hist = self._get_h_histogram(img_h)[1:]
