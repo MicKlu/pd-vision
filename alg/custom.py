@@ -94,6 +94,11 @@ class CustomHsvBlobAlgorithm(ReferenceAlgorithm):
 
         _, self.h_mask = cv.threshold(h_uneq_threshed, 1, 255, cv.THRESH_BINARY)
 
+        self.h_steps.append({
+            "img": h_uneq_threshed,
+            "mask": self.h_mask
+        })
+
     def _reduce_colors(self, img_h, close=False):
         img_hist = self._get_h_histogram(img_h)[1:]
 

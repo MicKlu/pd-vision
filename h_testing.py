@@ -11,31 +11,46 @@ def plot_h_mask(img, step, i):
     
     (h,s,v) = cv.split(img)
 
-    plt.figure("h_mask")
-    plt.ion()
-    plt.clf()
+    # plt.figure("h_mask")
 
-    plt.subplot(1, 2, 1)
+    # plt.subplot(1, 2, 1)
 
-    _, thresh = cv.threshold(step["img"], 1, 255, cv.THRESH_BINARY)
-    h_masked = cv.bitwise_and(h, thresh)
+    # _, thresh = cv.threshold(step["img"], 1, 255, cv.THRESH_BINARY)
+    # h_masked = cv.bitwise_and(h, thresh)
+
+    # out = cv.cvtColor(cv.merge([
+    #     np.where(h_masked == 0, 120, 30).astype("uint8"),
+    #     np.full_like(s, 255),
+    #     np.clip((v * 1.9), 0, 255).astype("uint8")
+    # ]), cv.COLOR_HSV2RGB)
+
+    # cv.imwrite(f"out/thresh_h_{i}.png", cv.cvtColor(out, cv.COLOR_RGB2BGR))
+
+    # plt.imshow(out)
+    # plt.axis("off")
+
+    # plt.subplot(1, 2, 2)
+    # hist = get_single_channel_histogram(step["img"], 180)[1:]
+    # plt.bar(np.arange(1, 180), hist, 1)
+    # if "pix" in step:
+    #     plt.bar([step["pix"]], [np.max(hist)], 1, color="r")
+
+    # plt.show()
 
 
-    out = cv.cvtColor(cv.merge([
-        np.where(h_masked == 0, 120, 30).astype("uint8"),
-        np.full_like(s, 255),
-        np.clip((v * 1.9), 0, 255).astype("uint8")
-    ]), cv.COLOR_HSV2RGB)
-
-    plt.imshow(out)
-    plt.axis("off")
-
-    plt.subplot(1, 2, 2)
+    plt.figure(figsize=(4,2), dpi=72)
     hist = get_single_channel_histogram(step["img"], 180)[1:]
     plt.bar(np.arange(1, 180), hist, 1)
-    plt.bar([step["pix"]], [np.max(hist)], 1, color="r")
+    if "pix" in step:
+        plt.bar([step["pix"]], [np.max(hist)], 1, color="r")
 
-    plt.show()
+    plt.xlabel(r"Poziom jasności $r_k$")
+    plt.ylabel(r"Liczba pikseli $h(r_k)$")
+    plt.xlim(1, 179)
+    plt.tight_layout(pad=0.01)
+
+    plt.savefig(f"out/thresh_h_{i}_hist.png")
+    
 
 def get_single_channel_histogram(channel, bins=256):
     hist = np.histogram(channel.ravel(), bins, [0,bins])
