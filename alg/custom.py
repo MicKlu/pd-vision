@@ -146,7 +146,7 @@ class CustomHsvBlobAlgorithm(ReferenceAlgorithm):
         peak = x[y > np.exp(-0.5) * y.max()]
         sigma0 = 0.5*(peak.max() - peak.min())
 
-        popt, pcov = optimize.curve_fit(self.__gauss, x, y, (np.max(y), 127, sigma0))
+        popt, pcov = optimize.curve_fit(self.__gauss, x, y, (np.max(y), 127, 1))
         return popt
 
     def __gauss(self, x, a, mu, sigma):
