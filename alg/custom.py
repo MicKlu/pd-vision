@@ -52,16 +52,16 @@ class CustomHsvBlobAlgorithm(ReferenceAlgorithm):
         # Apply color reduction
         self._color_reduction()
 
-        self.img_s_h_masked = cv.bitwise_and(self.img_prep_s, self.h_mask)
+        # self.img_s_h_masked = cv.bitwise_and(self.img_prep_s, self.h_mask)
         self.img_v_h_masked = cv.bitwise_and(cv.bitwise_not(self.img_prep_v), self.h_mask)
 
         # Noise removal
         self.img_v_h_masked = cv.GaussianBlur(self.img_v_h_masked, (3, 3), 0)
 
         # Find S space threshold
-        s_hist = self._get_single_channel_histogram(self.img_s_h_masked)[1:]
+        s_hist = self._get_single_channel_histogram(self.img_prep_s)
 
-        x = np.arange(1, 256)
+        x = np.arange(0, 256)
         (a, mu, sigma) = self._fit_gauss(x, s_hist)
         s_pix_val = np.ceil(mu + 1.5 * sigma)
 
@@ -79,8 +79,10 @@ class CustomHsvBlobAlgorithm(ReferenceAlgorithm):
         print(v_pix_val)
 
         # Threshold S and V spaces
-        _, self.img_s_thresh = cv.threshold(self.img_s_h_masked, s_pix_val, 255, cv.THRESH_BINARY)
+        _, self.img_s_thresh = cv.threshold(self.img_prep_s, s_pix_val, 255, cv.THRESH_BINARY)
         _, self.img_v_thresh = cv.threshold(self.img_v_h_masked, v_pix_val, 255, cv.THRESH_BINARY)
+
+        self.img_s_thresh = cv.bitwise_and(self.img_s_thresh, self.h_mask)
 
         self.img_h_thresh = self.h_mask
 
