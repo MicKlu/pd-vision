@@ -11,6 +11,8 @@ class CustomHsvBlobAlgorithm(ReferenceAlgorithm):
         self._min_blob_size = math.ceil(math.pi * 7**2)
         self.safe_area = 0.8
 
+        self.h_steps = []
+
     def _preprocessing(self):
         super()._preprocessing()
 
@@ -39,8 +41,8 @@ class CustomHsvBlobAlgorithm(ReferenceAlgorithm):
         # hsv2bgr2hsv = self.img_prep_hsv = cv.cvtColor(self.img_prep_bgr, cv.COLOR_BGR2HSV)
         # self.img_prep_h, self.img_prep_s, self.img_prep_v = self.img_prep_h, self.img_prep_s, self.img_prep_v = cv.split(hsv2bgr2hsv)
 
-    def _sharpening(self, img, kernel=None):
-        return super()._sharpening(img, np.array([[0, -1, 0], [-1, 5, -1], [0, -1, 0]]))
+    # def _sharpening(self, img, kernel=None):
+    #     return super()._sharpening(img, np.array([[0, -1, 0], [-1, 5, -1], [0, -1, 0]]))
 
     def _thresholding(self):
         self._color_reduction()
@@ -101,6 +103,13 @@ class CustomHsvBlobAlgorithm(ReferenceAlgorithm):
         print(np.sum(mask == 0))
 
         img_thresh = cv.bitwise_and(img_h, mask)
+
+        self.h_steps.append({
+            "img": img_h,
+            "hist": img_hist,
+            "pix": pix_val,
+            "mask": img_thresh
+        })
 
         if close:
             _, mask = cv.threshold(img_thresh, 0, 255, cv.THRESH_BINARY)
