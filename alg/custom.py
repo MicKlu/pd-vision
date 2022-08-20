@@ -216,17 +216,28 @@ class CustomHsvBlobAlgorithm(ReferenceAlgorithm):
         # Sum S and V thresholds
         self.img_bitwise = cv.bitwise_or(self.img_s_thresh, self.img_v_thresh)
 
+        cv.imwrite("out/morph_sv_sum.png", self.img_bitwise)
+
         # Remove small blobs
         sv_blobs = self._separate(self.img_bitwise)
         img_sv_morphed_big = np.copy(sv_blobs[0])
 
+        cv.imwrite("out/morph_sv_big_blobs.png", img_sv_morphed_big)
+
         # Closing and opening
         img_sv_morphed_big = self._closing_with_filling(img_sv_morphed_big, (17, 17))
+
+        cv.imwrite("out/morph_sv_close.png", img_sv_morphed_big)
+
         kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, (7, 7))
         img_sv_morphed_big = cv.morphologyEx(img_sv_morphed_big, cv.MORPH_OPEN, kernel, iterations=1)
 
+        cv.imwrite("out/morph_sv_open.png", img_sv_morphed_big)
+
         # Apply safe area
         img_sv_morphed_big = self._remove_border_blobs(img_sv_morphed_big)
+
+        cv.imwrite("out/morph_safe_area.png", img_sv_morphed_big)
 
         # Separate merged blobs
         while True:
