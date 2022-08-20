@@ -1,6 +1,7 @@
 from . import *
 from alg.ref import ReferenceAlgorithm
 from scipy import optimize, signal
+from matplotlib import pyplot as plt
 
 class CustomHsvBlobAlgorithm(ReferenceAlgorithm):
 
@@ -53,17 +54,44 @@ class CustomHsvBlobAlgorithm(ReferenceAlgorithm):
         self._color_reduction()
 
         # self.img_s_h_masked = cv.bitwise_and(self.img_prep_s, self.h_mask)
-        self.img_v_h_masked = cv.bitwise_and(cv.bitwise_not(self.img_prep_v), self.h_mask)
+        # self.img_v_h_masked = cv.bitwise_and(cv.bitwise_not(self.img_prep_v), self.h_mask)
 
         # Noise removal
-        self.img_v_h_masked = cv.GaussianBlur(self.img_v_h_masked, (3, 3), 0)
+        # self.img_v_h_masked = cv.GaussianBlur(self.img_v_h_masked, (3, 3), 0)
+        # img_v_blur = cv.GaussianBlur(cv.bitwise_not(self.img_prep_v), (3, 3), 0)
+        img_v_blur = cv.GaussianBlur(self.img_prep_v, (3, 3), 0)
+
+        # img_v_blur = self.img_prep_v
 
         # Find S space threshold
-        s_hist = self._get_single_channel_histogram(self.img_prep_s)
+        s_hist = self._get_single_channel_histogram(self.img_prep_s, normalize=False)
 
         x = np.arange(0, 256)
         (a, mu, sigma) = self._fit_gauss(x, s_hist)
         s_pix_val = np.ceil(mu + 1.5 * sigma)
+
+        # bins = 256
+        # plt.figure("Histogram", figsize=(6,3), dpi=72, clear=True)
+        # plt.ion()
+
+        # plt.hist(self.img_prep_s.ravel(), bins, [0, bins], label="Histogram")
+
+        # plt.xlabel(r"Poziom jasności $r_k$")
+        # plt.ylabel(r"Liczba pikseli $h(r_k)$")
+
+        # plt.xlim(0, bins - 1)
+
+        # plt.tight_layout(pad=0.01)
+
+        # plt.show()
+
+        # x = np.arange(0,256)
+        # y = self.__gauss(x, a, mu, sigma)
+        # plt.plot(x, y, label="Dopsaowanie")
+
+        # plt.bar([s_pix_val], [s_hist.max()], width=1, color="r")
+
+        # plt.legend()
 
         # v_hist = self._get_single_channel_histogram(self.img_v_h_masked)[1:]
 
@@ -75,14 +103,42 @@ class CustomHsvBlobAlgorithm(ReferenceAlgorithm):
         # Constant V space threshold
         v_pix_val = 254
 
+        # bins = 256
+        # plt.figure("Histogram", figsize=(6,3), dpi=72, clear=True)
+        # plt.ion()
+
+        # plt.hist(self.img_prep_v.ravel(), bins, [0, bins], label="Histogram")
+
+        # plt.xlabel(r"Poziom jasności $r_k$")
+        # plt.ylabel(r"Liczba pikseli $h(r_k)$")
+
+        # plt.xlim(0, bins - 1)
+
+        # plt.tight_layout(pad=0.01)
+
+        # plt.show()
+
         print(s_pix_val)
         print(v_pix_val)
 
         # Threshold S and V spaces
         _, self.img_s_thresh = cv.threshold(self.img_prep_s, s_pix_val, 255, cv.THRESH_BINARY)
-        _, self.img_v_thresh = cv.threshold(self.img_v_h_masked, v_pix_val, 255, cv.THRESH_BINARY)
+        # _, self.img_v_thresh = cv.threshold(self.img_v_h_masked, v_pix_val, 255, cv.THRESH_BINARY)
+        # _, self.img_v_thresh = cv.threshold(img_v_blur, v_pix_val, 255, cv.THRESH_BINARY)
+        
+        _, self.img_v_thresh = cv.threshold(img_v_blur, 0, 255, cv.THRESH_BINARY)
+
+        cv.imwrite("out/thresh_v.png", self.img_v_thresh)
+        # cv.imwrite("out/thresh_v_inv.png", self.img_v_thresh)
+
+        self.img_v_thresh = cv.bitwise_not(self.img_v_thresh)
+        cv.imwrite("out/thresh_v_inv.png", self.img_v_thresh)
+        # cv.imwrite("out/thresh_v.png", cv.bitwise_not(self.img_v_thresh))
 
         self.img_s_thresh = cv.bitwise_and(self.img_s_thresh, self.h_mask)
+        self.img_v_thresh = cv.bitwise_and(self.img_v_thresh, self.h_mask)
+
+        cv.imwrite("out/thresh_v_result.png", self.img_v_thresh)
 
         self.img_h_thresh = self.h_mask
 
@@ -134,9 +190,12 @@ class CustomHsvBlobAlgorithm(ReferenceAlgorithm):
 
         return img_filled
 
-    def _get_single_channel_histogram(self, channel, bins=256):
+    def _get_single_channel_histogram(self, channel, bins=256, normalize=True):
         hist = np.histogram(channel.ravel(), bins, [0,bins])
-        hist = hist[0] / hist[0].max()
+        if normalize:
+            hist = hist[0] / hist[0].max()
+        else:
+            hist = hist[0]
         return hist
 
     def _get_h_histogram(self, h_channel):
