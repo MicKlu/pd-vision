@@ -281,6 +281,12 @@ class CustomHsvBlobAlgorithm(ReferenceAlgorithm):
         offset_v = (1 - self.safe_area) * img_height / 2
         offset_h = (1 - self.safe_area) * img_width / 2
 
+        # img = cv.cvtColor(np.copy(img_morphed), cv.COLOR_GRAY2BGR)
+        # cv.rectangle(img, (int(offset_h), int(offset_v)), (int(img_width - offset_h), int(img_height - offset_v)), (0, 0, 255),  1)
+        # cv.imshow("dsa", img)
+
+        # cv.waitKey()
+
         for blob in blobs:
             moments = cv.moments(blob)
 
@@ -292,6 +298,12 @@ class CustomHsvBlobAlgorithm(ReferenceAlgorithm):
                 continue
 
             cv.drawContours(img_morphed, [blob], 0, 0, -1)
+
+        # img = cv.cvtColor(np.copy(img_morphed), cv.COLOR_GRAY2BGR)
+        # cv.rectangle(img, (int(offset_h), int(offset_v)), (int(img_width - offset_h), int(img_height - offset_v)), (0, 0, 255),  1)
+        # cv.imshow("dsa", img)
+
+        # cv.waitKey()
 
         return img_morphed
 
