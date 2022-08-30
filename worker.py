@@ -1,3 +1,4 @@
+from datetime import datetime
 import os
 import tempfile
 from pathlib import Path
@@ -43,6 +44,8 @@ class CountingWorker:
         self.__alg = None
         self.__alg_id = None
 
+        self.__execution_time = None
+
         self.__img = cv.imread(img_path)
         if self.__img is None:
             raise CountingWorkerError("Plik nie może być otwarty")
@@ -63,13 +66,15 @@ class CountingWorker:
         count = self.__alg.count()
         
         e2 = cv.getTickCount()
-        time = (e2 - e1)/ cv.getTickFrequency()
+        self.__execution_time = (e2 - e1)/ cv.getTickFrequency()
 
         self.__window.detectedValueLabel.setText(f"{count}")
-        self.__window.executionTimeValueLabel.setText(f"{time} s")
+        self.__window.executionTimeValueLabel.setText(f"{self.__execution_time} s")
 
         self.__window.update_image_left()
         self.__window.update_image_right()
+
+        self.__save_report()
 
     def save_image(self, save_path: str, image_index: int):
         img = self.get_image(image_index)
@@ -228,3 +233,96 @@ class CountingWorker:
         d = img.data
 
         return QPixmap(QImage(d, w, h, c * w, format))
+
+    def __save_report(self):
+        if self.__window.report_file is None:
+            path = Path("out")
+            path.mkdir(parents=True, exist_ok=True)
+            date = datetime.now().strftime("%Y-%m-%d %H-%M-%S")
+            path = Path.joinpath(path, f"report_{date}.csv")
+            self.__window.report_file = path
+            with open(path, "a") as f:
+                f.write(",".join([
+                    "plik",
+                    "algorytm",
+                    "próg_s",
+                    "próg_v",
+                    "min_rozmiar",
+                    "strefa_bezpieczna",
+                    "wszystkie_plamy",
+                    "zliczone obiekty",
+                    "czas wykonywania",
+                    "czas wczytywania obrazu",
+                    "czas wstępnego przetwarzania",
+                    "czas segmentacji",
+                    "czas progowania",
+                    "czas usuwania kolorów",
+                    "czas progowania s",
+                    "czas progowania v",
+                    "czas operacji morfologicznych",
+                    "czas stosowania strefy bezpiecznej",
+                    "czas rozdzielania obiektów",
+                    "czas wyznaczenia plam",
+                    "czas zliczania",
+                ]) + "\n")
+
+        report = {
+            "file": Path(self.__img_path).name,
+            "min_size": str(self.__alg.min_blob_size),
+            "blob_count": str(self.__alg.debug_data["blob_count"]),
+            "objects_count": str(self.__alg.count()),
+            "execution_time": str(self.__execution_time),
+            "execution_time_capture": str(self.__alg.debug_data["execution_time_capture"]),
+            "execution_time_preprocessing": str(self.__alg.debug_data["execution_time_preprocessing"]),
+            "execution_time_segmentation": str(self.__alg.debug_data["execution_time_segmentation"]),
+            "execution_time_thresholding": str(self.__alg.debug_data["execution_time_thresholding"]),
+            "execution_time_morphology": str(self.__alg.debug_data["execution_time_morphology"]),
+            "execution_time_extraction": str(self.__alg.debug_data["execution_time_extraction"]),
+            "execution_time_counting": str(self.__alg.debug_data["execution_time_counting"]),
+        }
+
+        if type(self.__alg) == ReferenceAlgorithm:
+            report["algorithm"] = "referencyjny"
+            report["s_thresh"] = str(self.__alg.s_thresh_level)
+            report["v_thresh"] = str(self.__alg.v_thresh_level)
+            report["safe_area"] = "-"
+            report["execution_time_color_reduction"] = "-"
+            report["execution_time_thresholding_s"] = "-"
+            report["execution_time_thresholding_v"] = "-"
+            report["execution_time_safe_area"] = "-"
+            report["execution_time_separation"] = "-"
+        elif type(self.__alg) == CustomHsvBlobAlgorithm:
+            report["algorithm"] = "własny"
+            report["s_thresh"] = str(self.__alg.debug_data["s_thresh_level"])
+            report["v_thresh"] = str(self.__alg.debug_data["v_thresh_level"])
+            report["safe_area"] = str(self.__alg.safe_area)
+            report["execution_time_color_reduction"] = str(self.__alg.debug_data["execution_time_color_reduction"])
+            report["execution_time_thresholding_s"] = str(self.__alg.debug_data["execution_time_thresholding_s"])
+            report["execution_time_thresholding_v"] = str(self.__alg.debug_data["execution_time_thresholding_v"])
+            report["execution_time_safe_area"] = str(self.__alg.debug_data["execution_time_safe_area"])
+            report["execution_time_separation"] = str(self.__alg.debug_data["execution_time_separation"])
+
+        with open(self.__window.report_file, "a") as f:
+            f.write(",".join([
+                report["file"],
+                report["algorithm"],
+                report["s_thresh"],
+                report["v_thresh"],
+                report["min_size"],
+                report["safe_area"],
+                report["blob_count"],
+                report["objects_count"],
+                report["execution_time"],
+                report["execution_time_capture"],
+                report["execution_time_preprocessing"],
+                report["execution_time_segmentation"],
+                report["execution_time_thresholding"],
+                report["execution_time_color_reduction"],
+                report["execution_time_thresholding_s"],
+                report["execution_time_thresholding_v"],
+                report["execution_time_morphology"],
+                report["execution_time_safe_area"],
+                report["execution_time_separation"],
+                report["execution_time_extraction"],
+                report["execution_time_counting"],
+            ]) + "\n")

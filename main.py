@@ -17,6 +17,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         super().__init__(parent)
 
         self.__worker = None
+        self.report_file = None
 
         self.setupUi(self)
         self.__connect_signals_and_slots()

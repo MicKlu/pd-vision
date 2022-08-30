@@ -2,6 +2,21 @@ import cv2 as cv
 import numpy as np
 import math
 
+def debug_time(name: str):
+    def debug_time_decorator(func):
+        def debug_time_wrapper(*args, **kwargs):
+            self = args[0]
+            e1 = cv.getTickCount()
+
+            return_value = func(*args, **kwargs)
+
+            e2 = cv.getTickCount()
+            self.debug_data[name] = (e2 - e1)/ cv.getTickFrequency()
+
+            return return_value
+        return debug_time_wrapper
+    return debug_time_decorator
+
 class IAlgorithm:
     def _capture(self): pass
     def _preprocessing(self): pass
@@ -16,6 +31,8 @@ class BaseAlgorithm(IAlgorithm):
         self.img_original_bgr = None
         self.count_result = None
 
+        self.debug_data = {}
+
     def count(self) -> int:
         if self.count_result is not None:
             return self.count_result
@@ -26,6 +43,7 @@ class BaseAlgorithm(IAlgorithm):
         self._counting()
         return self.count_result
 
+    @debug_time("execution_time_capture")
     def _capture(self):
         self.img_original_bgr = cv.imread(self._img_path)
 
@@ -44,6 +62,7 @@ class BaseAlgorithm(IAlgorithm):
 
 class BaseBlobAlgorithm(BaseAlgorithm):
 
+    @debug_time("execution_time_segmentation")
     def _segmentation(self):
         self._thresholding()
         self._morphology()
@@ -87,6 +106,7 @@ class BaseHsvBlobAlgorithm(BaseBlobAlgorithm):
         self._label_connectivity = 8
         self.min_blob_size = 500
 
+    @debug_time("execution_time_preprocessing")
     def _preprocessing(self):
         self.img_prep_bgr = np.copy(self.img_original_bgr)
 
@@ -97,19 +117,24 @@ class BaseHsvBlobAlgorithm(BaseBlobAlgorithm):
         self.img_prep_hsv = cv.cvtColor(self.img_prep_bgr, cv.COLOR_BGR2HSV)
         self.img_prep_h, self.img_prep_s, self.img_prep_v = cv.split(self.img_prep_hsv)
 
+    @debug_time("execution_time_morphology")
     def _morphology(self):
         img_sv_thresh = cv.bitwise_and(self.img_s_thresh, self.img_v_thresh)
         self.img_bitwise = img_sv_thresh
         self.img_morphed = self._opening_closing(img_sv_thresh)
 
+    @debug_time("execution_time_extraction")
     def _extraction(self):
         _, _, stats, centroids = cv.connectedComponentsWithStats(self.img_morphed, connectivity=self._label_connectivity)
         self.labels = [{ "stats": stats[i], "centroids": centroids[i]} for i in range(1, len(stats))]
         self.blobs, hierarchy = cv.findContours(self.img_morphed, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
     
+    @debug_time("execution_time_counting")
     def _counting(self):
         self.count_result = 0
         self.valid_blobs = []
+
+        self.debug_data["blob_count"] = len(self.labels)
 
         for label in self.labels:
             size = label["stats"][cv.CC_STAT_AREA]

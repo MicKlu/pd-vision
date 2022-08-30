@@ -135,3 +135,5 @@ dmypy.json
 h_testing_out/
 _utils/*/*.png
 _utils/*/*/*.png
+out
+imgs/test_samples

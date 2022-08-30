@@ -266,7 +266,7 @@
        </sizepolicy>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="refAlgorithmTab">
        <attribute name="title">
@@ -502,7 +502,10 @@
                <number>10000</number>
               </property>
               <property name="value">
-               <number>154</number>
+               <number>133</number>
+              </property>
+              <property name="sliderPosition">
+               <number>133</number>
               </property>
               <property name="tracking">
                <bool>true</bool>
@@ -533,7 +536,7 @@
                <number>10000</number>
               </property>
               <property name="value">
-               <number>154</number>
+               <number>133</number>
               </property>
              </widget>
             </item>

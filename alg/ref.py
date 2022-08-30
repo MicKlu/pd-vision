@@ -7,6 +7,7 @@ class ReferenceAlgorithm(BaseHsvBlobAlgorithm):
         self.s_thresh_level = s_thresh_level
         self.v_thresh_level = v_thresh_level
 
+    @debug_time("execution_time_thresholding")
     def _thresholding(self):
         super()._thresholding()
         _, self.img_s_thresh = cv.threshold(self.img_prep_s, self.s_thresh_level, 255, cv.THRESH_BINARY)
@@ -19,6 +20,7 @@ class ReferenceAlgorithmToleranceCount(ReferenceAlgorithm):
         super().__init__(img_path, s_thresh_level, v_thresh_level)
         self.tolerance = tolerance
 
+    @debug_time("execution_time_counting")
     def _counting(self):
         minimum = 0
         maximum = np.size(self.img_morphed)

@@ -10,6 +10,7 @@ class CustomHsvBlobAlgorithm(ReferenceAlgorithm):
         self.min_blob_size = math.ceil(math.pi * 7**2)
         self.safe_area = 0.8
 
+    @debug_time("execution_time_preprocessing")
     def _preprocessing(self):
 
         # Blurring and sharpening
@@ -39,41 +40,48 @@ class CustomHsvBlobAlgorithm(ReferenceAlgorithm):
     def _sharpening(self, img, kernel=None):
         return super()._sharpening(img, np.array([[0, -1, 0], [-1, 5, -1], [0, -1, 0]]))
 
+    @debug_time("execution_time_thresholding")
     def _thresholding(self):
         # Apply color reduction
         self._color_reduction()
-
-        # Noise removal
-        img_v_blur = cv.GaussianBlur(self.img_prep_v, (3, 3), 0)
-
-        # Find S space threshold
-        s_hist = self._get_single_channel_histogram(self.img_prep_s)
-
-        x = np.arange(0, 256)
-        (a, mu, sigma) = self._fit_gauss(x, s_hist)
-        s_pix_val = np.ceil(mu + 1.5 * sigma)
-
-        # v_hist = self._get_single_channel_histogram(self.img_v_h_masked)[1:]
-
-        # peaks, _ = signal.find_peaks(np.append(v_hist, 0), np.average(v_hist))
-        # v_pix_val = np.max(peaks)
-
-        # v_pix_val = v_hist.tolist().index(v_hist.max()) + 0
-
-        # Constant V space threshold
-        v_pix_val = 0
-
-        # Threshold S and V spaces
-        _, self.img_s_thresh = cv.threshold(self.img_prep_s, s_pix_val, 255, cv.THRESH_BINARY)
-        _, self.img_v_thresh = cv.threshold(img_v_blur, v_pix_val, 255, cv.THRESH_BINARY)
-
-        self.img_v_thresh = cv.bitwise_not(self.img_v_thresh)
-
-        self.img_s_thresh = cv.bitwise_and(self.img_s_thresh, self.h_mask)
-        self.img_v_thresh = cv.bitwise_and(self.img_v_thresh, self.h_mask)
-
         self.img_h_thresh = self.h_mask
 
+        # Threshold S space
+        @debug_time("execution_time_thresholding_s")
+        def thresholding_s(self):
+            # Find S space threshold
+            s_hist = self._get_single_channel_histogram(self.img_prep_s)
+
+            x = np.arange(0, 256)
+            (a, mu, sigma) = self._fit_gauss(x, s_hist)
+            s_pix_val = np.ceil(mu + 1.5 * sigma)
+
+            # Threshold
+            _, self.img_s_thresh = cv.threshold(self.img_prep_s, s_pix_val, 255, cv.THRESH_BINARY)
+            self.img_s_thresh = cv.bitwise_and(self.img_s_thresh, self.h_mask)
+
+            self.debug_data["s_thresh_level"] = s_pix_val
+
+        thresholding_s(self)
+
+        # Threshold V space
+        @debug_time("execution_time_thresholding_v")
+        def thresholding_v(self):
+            # Noise removal
+            img_v_blur = cv.GaussianBlur(self.img_prep_v, (3, 3), 0)
+
+            # Constant V space threshold
+            v_pix_val = 0
+
+            _, self.img_v_thresh = cv.threshold(img_v_blur, v_pix_val, 255, cv.THRESH_BINARY)
+            self.img_v_thresh = cv.bitwise_not(self.img_v_thresh)
+            self.img_v_thresh = cv.bitwise_and(self.img_v_thresh, self.h_mask)
+
+            self.debug_data["v_thresh_level"] = v_pix_val
+
+        thresholding_v(self)
+
+    @debug_time("execution_time_color_reduction")
     def _color_reduction(self):
         h = np.copy(self.img_prep_h)
 
@@ -140,6 +148,7 @@ class CustomHsvBlobAlgorithm(ReferenceAlgorithm):
     def __gauss(self, x, a, mu, sigma):
         return a / (sigma * np.sqrt(2 * np.pi)) * np.exp(-(x - mu)**2 / (2 * sigma**2))
 
+    @debug_time("execution_time_morphology")
     def _morphology(self):
 
         # Sum S and V thresholds
@@ -191,6 +200,7 @@ class CustomHsvBlobAlgorithm(ReferenceAlgorithm):
         img = self._fill_holes(img)
         return cv.morphologyEx(img, cv.MORPH_ERODE, kernel)
 
+    @debug_time("execution_time_safe_area")
     def _remove_border_blobs(self, img_morphed):
         blobs, _ = cv.findContours(img_morphed, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
 
@@ -213,6 +223,7 @@ class CustomHsvBlobAlgorithm(ReferenceAlgorithm):
 
         return img_morphed
 
+    @debug_time("execution_time_separation")
     def _separate_blobs(self, img_morphed):
         blobs, _ = cv.findContours(img_morphed, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
 

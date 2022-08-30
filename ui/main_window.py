@@ -217,7 +217,8 @@ class Ui_MainWindow(object):
         self.horizontalLayout_5.setObjectName("horizontalLayout_5")
         self.customMinSizeSlider = QtWidgets.QSlider(self.customAlgorithmTab)
         self.customMinSizeSlider.setMaximum(10000)
-        self.customMinSizeSlider.setProperty("value", 154)
+        self.customMinSizeSlider.setProperty("value", 133)
+        self.customMinSizeSlider.setSliderPosition(133)
         self.customMinSizeSlider.setTracking(True)
         self.customMinSizeSlider.setOrientation(QtCore.Qt.Horizontal)
         self.customMinSizeSlider.setInvertedAppearance(False)
@@ -228,7 +229,7 @@ class Ui_MainWindow(object):
         self.customMinSizeSpin = QtWidgets.QSpinBox(self.customAlgorithmTab)
         self.customMinSizeSpin.setMinimumSize(QtCore.QSize(86, 0))
         self.customMinSizeSpin.setMaximum(10000)
-        self.customMinSizeSpin.setProperty("value", 154)
+        self.customMinSizeSpin.setProperty("value", 133)
         self.customMinSizeSpin.setObjectName("customMinSizeSpin")
         self.horizontalLayout_5.addWidget(self.customMinSizeSpin)
         self.label_2 = QtWidgets.QLabel(self.customAlgorithmTab)
@@ -261,6 +262,10 @@ class Ui_MainWindow(object):
         self.horizontalLayout_4.addWidget(self.label)
         self.formLayout.setLayout(1, QtWidgets.QFormLayout.FieldRole, self.horizontalLayout_4)
         self.verticalLayout_4.addLayout(self.formLayout)
+        self.safeAreaDisplayCheck = QtWidgets.QCheckBox(self.customAlgorithmTab)
+        self.safeAreaDisplayCheck.setEnabled(True)
+        self.safeAreaDisplayCheck.setObjectName("safeAreaDisplayCheck")
+        self.verticalLayout_4.addWidget(self.safeAreaDisplayCheck)
         self.algorithmTabs.addTab(self.customAlgorithmTab, "")
         self.verticalLayout_3.addWidget(self.algorithmTabs)
         self.frame = QtWidgets.QFrame(self.centralwidget)
@@ -331,7 +336,7 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
         self.imageComboRight.setCurrentIndex(0)
-        self.algorithmTabs.setCurrentIndex(1)
+        self.algorithmTabs.setCurrentIndex(0)
         self.sThresholdSlider.valueChanged['int'].connect(self.sThresholdSpin.setValue) # type: ignore
         self.vThresholdSlider.valueChanged['int'].connect(self.vThresholdSpin.setValue) # type: ignore
         self.sThresholdSpin.valueChanged['int'].connect(self.sThresholdSlider.setValue) # type: ignore
@@ -395,6 +400,7 @@ class Ui_MainWindow(object):
         self.label_2.setText(_translate("MainWindow", "piks"))
         self.safeAreaLabel.setText(_translate("MainWindow", "Strefa bezpieczna"))
         self.label.setText(_translate("MainWindow", "%"))
+        self.safeAreaDisplayCheck.setText(_translate("MainWindow", "Pokaż strefę bezpieczną"))
         self.algorithmTabs.setTabText(self.algorithmTabs.indexOf(self.customAlgorithmTab), _translate("MainWindow", "Algorytm własny"))
         self.detectedLabel.setText(_translate("MainWindow", "Wykryte obiekty:"))
         self.detectedValueLabel.setText(_translate("MainWindow", "-"))
