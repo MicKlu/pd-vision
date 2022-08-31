@@ -53,11 +53,24 @@ class CustomHsvBlobAlgorithm(ReferenceAlgorithm):
             s_hist = self._get_single_channel_histogram(self.img_prep_s)
 
             x = np.arange(0, 256)
-            (a, mu, sigma) = self._fit_gauss(x, s_hist)
-            s_pix_val = np.ceil(mu + 1.5 * sigma)
+            try:
+                (a, mu, sigma) = self._fit_gauss(x, s_hist)
+            except RuntimeError:
+                mu = np.average(self.img_prep_s)
+                sigma = np.abs(np.std(self.img_prep_s))
 
             # Threshold
-            _, self.img_s_thresh = cv.threshold(self.img_prep_s, s_pix_val, 255, cv.THRESH_BINARY)
+            if mu <= 127:
+                s_pix_val = np.ceil(mu + 1.5 * sigma)
+                _, self.img_s_thresh = cv.threshold(self.img_prep_s, s_pix_val, 255, cv.THRESH_BINARY)
+                self.debug_data["s_thresh_invert"] = False
+            else:
+                s_pix_val = np.ceil(mu - 1.5 * sigma)
+                _, self.img_s_thresh = cv.threshold(self.img_prep_s, s_pix_val, 255, cv.THRESH_BINARY_INV)
+                self.debug_data["s_thresh_invert"] = True
+
+            print(mu, sigma, s_pix_val)
+
             self.img_s_thresh = cv.bitwise_and(self.img_s_thresh, self.h_mask)
 
             self.debug_data["s_thresh_level"] = s_pix_val
@@ -71,7 +84,7 @@ class CustomHsvBlobAlgorithm(ReferenceAlgorithm):
             img_v_blur = cv.GaussianBlur(self.img_prep_v, (3, 3), 0)
 
             # Constant V space threshold
-            v_pix_val = 0
+            v_pix_val = 1
 
             _, self.img_v_thresh = cv.threshold(img_v_blur, v_pix_val, 255, cv.THRESH_BINARY)
             self.img_v_thresh = cv.bitwise_not(self.img_v_thresh)
@@ -139,9 +152,6 @@ class CustomHsvBlobAlgorithm(ReferenceAlgorithm):
         return self._get_single_channel_histogram(h_channel, 180)
 
     def _fit_gauss(self, x, y):
-        peak = x[y > np.exp(-0.5) * y.max()]
-        sigma0 = 0.5*(peak.max() - peak.min())
-
         popt, pcov = optimize.curve_fit(self.__gauss, x, y, (np.max(y), 127, 1))
         return popt
 
@@ -163,9 +173,6 @@ class CustomHsvBlobAlgorithm(ReferenceAlgorithm):
         kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, (7, 7))
         img_sv_morphed_big = cv.morphologyEx(img_sv_morphed_big, cv.MORPH_OPEN, kernel, iterations=1)
 
-        # Apply safe area
-        img_sv_morphed_big = self._remove_border_blobs(img_sv_morphed_big)
-
         # Separate merged blobs
         while True:
             img_separated = self._separate_blobs(img_sv_morphed_big)
@@ -173,6 +180,9 @@ class CustomHsvBlobAlgorithm(ReferenceAlgorithm):
                 img_sv_morphed_big = img_separated
                 break
             img_sv_morphed_big = img_separated
+
+        # Apply safe area
+        img_sv_morphed_big = self._remove_border_blobs(img_sv_morphed_big)
 
         self.img_morphed = img_sv_morphed_big
 
@@ -212,12 +222,13 @@ class CustomHsvBlobAlgorithm(ReferenceAlgorithm):
         for blob in blobs:
             moments = cv.moments(blob)
 
-            cx = int(moments['m10']/moments['m00'])
-            cy = int(moments['m01']/moments['m00'])
+            if moments['m00'] > 0:
+                cx = int(moments['m10']/moments['m00'])
+                cy = int(moments['m01']/moments['m00'])
 
-            if not ((cx < offset_h or cx > img_width - offset_h)
-                    or (cy < offset_v or cy > img_height - offset_v)):
-                continue
+                if not ((cx < offset_h or cx > img_width - offset_h)
+                        or (cy < offset_v or cy > img_height - offset_v)):
+                    continue
 
             cv.drawContours(img_morphed, [blob], 0, 0, -1)
 
@@ -238,7 +249,7 @@ class CustomHsvBlobAlgorithm(ReferenceAlgorithm):
             else:
                 solidity = blob_area / hull_area
 
-            if solidity > 0.75:
+            if solidity > 0.65:
                 continue
 
             leftmost = tuple(blob[blob[:,:,0].argmin()][0])
@@ -303,7 +314,7 @@ class CustomHsvBlobAlgorithm(ReferenceAlgorithm):
             for defect in defects:
                 _, _, far_idx, d = defect[0]
                 far = blob[far_idx][0]
-                if d < 3000:
+                if d < 4250:
                     continue
                 defect_points.append({
                     'coords': far,

@@ -475,6 +475,13 @@
           </item>
          </layout>
         </item>
+        <item>
+         <widget class="QCheckBox" name="sThresholdInvertCheck">
+          <property name="text">
+           <string>Odwróć progowanie S</string>
+          </property>
+         </widget>
+        </item>
        </layout>
       </widget>
       <widget class="QWidget" name="customAlgorithmTab">

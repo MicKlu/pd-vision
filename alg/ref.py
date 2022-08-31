@@ -7,10 +7,17 @@ class ReferenceAlgorithm(BaseHsvBlobAlgorithm):
         self.s_thresh_level = s_thresh_level
         self.v_thresh_level = v_thresh_level
 
+        self.s_thresh_invert = False
+
     @debug_time("execution_time_thresholding")
     def _thresholding(self):
         super()._thresholding()
-        _, self.img_s_thresh = cv.threshold(self.img_prep_s, self.s_thresh_level, 255, cv.THRESH_BINARY)
+
+        if not self.s_thresh_invert:
+            _, self.img_s_thresh = cv.threshold(self.img_prep_s, self.s_thresh_level, 255, cv.THRESH_BINARY)
+        else:
+            _, self.img_s_thresh = cv.threshold(self.img_prep_s, self.s_thresh_level, 255, cv.THRESH_BINARY_INV)
+
         _, self.img_v_thresh = cv.threshold(self.img_prep_v, self.v_thresh_level, 255, cv.THRESH_BINARY_INV)
         self.img_h_thresh = np.full_like(self.img_prep_h, 255)
 

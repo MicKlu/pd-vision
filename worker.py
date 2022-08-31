@@ -231,6 +231,7 @@ class CountingWorker:
         self.__alg.s_thresh_level = self.__window.sThresholdSpin.value()
         self.__alg.v_thresh_level = self.__window.vThresholdSpin.value()
         self.__alg.min_blob_size = self.__window.refMinSizeSpin.value()
+        self.__alg.s_thresh_invert = self.__window.sThresholdInvertCheck.isChecked()
 
     def __setup_custom_algorithm(self):
         self.__alg = CustomHsvBlobAlgorithm(self.__img_path)
@@ -259,9 +260,10 @@ class CountingWorker:
                 f.write(",".join([
                     "plik",
                     "algorytm",
-                    "próg_s",
-                    "próg_v",
+                    "próg s",
+                    "próg v",
                     "min_rozmiar",
+                    "progowanie s odwrócone",
                     "strefa_bezpieczna",
                     "wszystkie_plamy",
                     "zliczone obiekty",
@@ -299,6 +301,7 @@ class CountingWorker:
             report["algorithm"] = "referencyjny"
             report["s_thresh"] = str(self.__alg.s_thresh_level)
             report["v_thresh"] = str(self.__alg.v_thresh_level)
+            report["s_thresh_invert"] = "1" if self.__alg.s_thresh_invert else "0"
             report["safe_area"] = "-"
             report["execution_time_color_reduction"] = "-"
             report["execution_time_thresholding_s"] = "-"
@@ -309,6 +312,7 @@ class CountingWorker:
             report["algorithm"] = "własny"
             report["s_thresh"] = str(self.__alg.debug_data["s_thresh_level"])
             report["v_thresh"] = str(self.__alg.debug_data["v_thresh_level"])
+            report["s_thresh_invert"] = "1" if self.__alg.debug_data["s_thresh_invert"] else "0"
             report["safe_area"] = str(self.__alg.safe_area)
             report["execution_time_color_reduction"] = str(self.__alg.debug_data["execution_time_color_reduction"])
             report["execution_time_thresholding_s"] = str(self.__alg.debug_data["execution_time_thresholding_s"])
@@ -323,6 +327,7 @@ class CountingWorker:
                 report["s_thresh"],
                 report["v_thresh"],
                 report["min_size"],
+                report["s_thresh_invert"],
                 report["safe_area"],
                 report["blob_count"],
                 report["objects_count"],
