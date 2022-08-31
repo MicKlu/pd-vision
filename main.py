@@ -62,6 +62,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionShowImageLeft.triggered.connect(self.__show_image_left)
         self.actionShowImageRight.triggered.connect(self.__show_image_right)
 
+        self.safeAreaDisplayCheck.stateChanged.connect(self.__toggle_safe_area)
+
     def __open(self):
         mimes = ["image/jpeg", "image/png"]
         
@@ -160,6 +162,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.__show_histogram(1)
 
     def __update_image_preview(self, preview_id: int, image_index: int):
+        if self.__worker is None:
+            return
+
         pixmap = self.__worker.get_pixmap(image_index)
 
         if preview_id == 0:
@@ -176,6 +181,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if image_index is None:
             image_index = self.imageComboRight.currentIndex()
         self.__update_image_preview(1, image_index)
+
+    def __toggle_safe_area(self):
+        self.update_image_left()
+        self.update_image_right()
 
     def __safe_area_slider2spin(self, value: int):
         self.safeAreaSpin.setValue(value / 100)

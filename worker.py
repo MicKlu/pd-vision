@@ -182,14 +182,25 @@ class CountingWorker:
                 img = self.__alg.img_morphed
             elif image_index == CountingWorker.IMAGE_COUNTING:
                 img_output = np.copy(self.__alg.img_original_bgr)
-                cv.drawContours(img_output, self.__alg.blobs, -1, (0, 0, 255), 3)
+                # cv.drawContours(img_output, self.__alg.blobs, -1, (0, 0, 255), 3)
 
                 for l in self.__alg.valid_blobs:
                     pt1 = (l["stats"][cv.CC_STAT_LEFT], l["stats"][cv.CC_STAT_TOP])
                     pt2 = (pt1[0] + l["stats"][cv.CC_STAT_WIDTH], pt1[1] + l["stats"][cv.CC_STAT_HEIGHT])
-                    cv.rectangle(img_output, pt1, pt2, (255, 0, 0), 3)
+                    cv.rectangle(img_output, pt1, pt2, (255, 0, 0), 2)
 
                 img = img_output
+
+        if (self.__alg_id == CountingWorker.ALGORITHM_CUSTOM
+            and self.__window.safeAreaDisplayCheck.isChecked()):
+            img = np.copy(img)
+
+            img_height = np.size(img, 0)
+            img_width = np.size(img, 1)
+            offset_v = int((1 - self.__alg.safe_area) * img_height / 2)
+            offset_h = int((1 - self.__alg.safe_area) * img_width / 2)
+
+            cv.rectangle(img, (offset_h, offset_v), (img_width - offset_h, img_height - offset_v), [0, 0, 255], 3)
 
         return img
 
@@ -197,9 +208,9 @@ class CountingWorker:
         pixmap = QPixmap()
 
         if self.__alg is None:
-            return pixmap
-
-        img = self.get_image(image_index)
+            img = self.get_image(CountingWorker.IMAGE_ORIGINAL)
+        else:
+            img = self.get_image(image_index)
 
         if ((image_index >= CountingWorker.IMAGE_ORIGINAL_H
                 and image_index <= CountingWorker.IMAGE_ORIGINAL_V)
