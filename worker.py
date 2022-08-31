@@ -184,10 +184,13 @@ class CountingWorker:
                 img_output = np.copy(self.__alg.img_original_bgr)
                 # cv.drawContours(img_output, self.__alg.blobs, -1, (0, 0, 255), 3)
 
+                i = 1
                 for l in self.__alg.valid_blobs:
                     pt1 = (l["stats"][cv.CC_STAT_LEFT], l["stats"][cv.CC_STAT_TOP])
                     pt2 = (pt1[0] + l["stats"][cv.CC_STAT_WIDTH], pt1[1] + l["stats"][cv.CC_STAT_HEIGHT])
                     cv.rectangle(img_output, pt1, pt2, (255, 0, 0), 2)
+                    cv.putText(img_output, f"{i}", (pt1[0], pt1[1] - 5), cv.FONT_HERSHEY_COMPLEX_SMALL, 1, [255, 0, 0], 1, cv.LINE_AA)
+                    i += 1
 
                 img = img_output
 
