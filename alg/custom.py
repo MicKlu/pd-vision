@@ -65,8 +65,6 @@ class CustomHsvBlobAlgorithm(ReferenceAlgorithm):
                 _, self.img_s_thresh = cv.threshold(self.img_prep_s, s_pix_val, 255, cv.THRESH_BINARY_INV)
                 self.debug_data["s_thresh_invert"] = True
 
-            print(mu, sigma, s_pix_val)
-
             self.img_s_thresh = cv.bitwise_and(self.img_s_thresh, self.h_mask)
 
             self.debug_data["s_thresh_level"] = s_pix_val
@@ -116,8 +114,6 @@ class CustomHsvBlobAlgorithm(ReferenceAlgorithm):
 
         pix_val = img_hist.tolist().index(img_hist.max()) + 1
         mask = np.where(img_h == pix_val, 0, 255).astype("uint8")
-        print(f"pix_val: {pix_val}")
-        print(np.sum(mask == 0))
 
         img_thresh = cv.bitwise_and(img_h, mask)
 
@@ -140,8 +136,8 @@ class CustomHsvBlobAlgorithm(ReferenceAlgorithm):
         return img_filled
 
     def _get_single_channel_histogram(self, channel, bins=256):
-        hist = np.histogram(channel.ravel(), bins, [0,bins])
-        hist = hist[0] / hist[0].max()
+        hist = cv.calcHist([channel], [0], None, [bins], [0,bins])
+        hist = hist / hist.max()
         return hist
 
     def _get_h_histogram(self, h_channel):
@@ -179,10 +175,6 @@ class CustomHsvBlobAlgorithm(ReferenceAlgorithm):
         contours, hierarchy = cv.findContours(img, cv.RETR_CCOMP, cv.CHAIN_APPROX_SIMPLE)
         areas = np.array([ cv.contourArea(c) for c in contours ])
         avg = np.average(areas)
-        
-        print(areas.min())
-        print(areas.max())
-        print(avg)
 
         big_blobs = np.zeros_like(img)
         for c in contours:
@@ -241,11 +233,6 @@ class CustomHsvBlobAlgorithm(ReferenceAlgorithm):
             if solidity > 0.65:
                 continue
 
-            leftmost = tuple(blob[blob[:,:,0].argmin()][0])
-            rightmost = tuple(blob[blob[:,:,0].argmax()][0])
-            topmost = tuple(blob[blob[:,:,1].argmin()][0])
-            bottommost = tuple(blob[blob[:,:,1].argmax()][0])
-
             defect_points = self._get_convexity_defect_points(blob)
 
             if len(defect_points) < 2:
@@ -274,11 +261,6 @@ class CustomHsvBlobAlgorithm(ReferenceAlgorithm):
                     continue
 
                 cv.line(blob_canvas, defect['coords'], closest_defect['coords'], [0, 0, 0])
-
-            print()
-            print(f"Area: {blob_area}")
-            print(f"Solidity: {solidity}")
-            print()
 
             ksize = (7, 7)
             if blob_area < 1000:
