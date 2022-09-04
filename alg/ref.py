@@ -52,11 +52,6 @@ class ReferenceAlgorithmToleranceCount(ReferenceAlgorithm):
             std = np.std(sizes)
             variation = (maximum - minimum) / average * 100
 
-            # print(average)
-            # print(std)
-            # print(variation)
-            # print()
-
             if variation <= self.tolerance:
                 break
             else:
@@ -72,9 +67,6 @@ class ReferenceAlgorithmToleranceCount(ReferenceAlgorithm):
 
         cutoff_low = (1 - self.tolerance / 1000) * average
         cutoff_high = (1 + self.tolerance / 1000) * average
-
-        # print(cutoff_low)
-        # print(cutoff_high)
 
         self.count_result = 0
         self.valid_blobs = []
