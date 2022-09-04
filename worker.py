@@ -19,6 +19,15 @@ class CountingWorkerError(Exception):
     def __init__(self, args):
         super().__init__(args)
 
+def repeat(times: int):
+    def repeat_decorator(func):
+        def repeat_wrapper(*args, **kwargs):
+            for i in range(0,times):
+                return_value = func(*args, **kwargs)
+            return return_value
+        return repeat_wrapper
+    return repeat_decorator
+
 class CountingWorker:
 
     ALGORITHM_REF = 0
@@ -53,6 +62,7 @@ class CountingWorker:
         pixmap = self.__opencv2pixmap(self.__img)
         window.imagePreviewLeft.setImage(pixmap)
 
+    @repeat(1)
     def count(self):
         self.__alg_id = self.__window.algorithmCombo.currentIndex()
         
