@@ -52,12 +52,8 @@ class CustomHsvBlobAlgorithm(ReferenceAlgorithm):
             # Find S space threshold
             s_hist = self._get_single_channel_histogram(self.img_prep_s)
 
-            x = np.arange(0, 256)
-            try:
-                (a, mu, sigma) = self._fit_gauss(x, s_hist)
-            except RuntimeError:
-                mu = np.average(self.img_prep_s)
-                sigma = np.abs(np.std(self.img_prep_s))
+            mu = np.average(self.img_prep_s)
+            sigma = np.abs(np.std(self.img_prep_s))
 
             # Threshold
             if mu <= 127:
@@ -150,13 +146,6 @@ class CustomHsvBlobAlgorithm(ReferenceAlgorithm):
 
     def _get_h_histogram(self, h_channel):
         return self._get_single_channel_histogram(h_channel, 180)
-
-    def _fit_gauss(self, x, y):
-        popt, pcov = optimize.curve_fit(self.__gauss, x, y, (np.max(y), 127, 1))
-        return popt
-
-    def __gauss(self, x, a, mu, sigma):
-        return a / (sigma * np.sqrt(2 * np.pi)) * np.exp(-(x - mu)**2 / (2 * sigma**2))
 
     @debug_time("execution_time_morphology")
     def _morphology(self):
