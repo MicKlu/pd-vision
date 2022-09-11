@@ -24,6 +24,8 @@ def repeat(times: int):
         def repeat_wrapper(*args, **kwargs):
             for i in range(0,times):
                 return_value = func(*args, **kwargs)
+                print(f"{i+1} / {times}", end="\r")
+            print()
             return return_value
         return repeat_wrapper
     return repeat_decorator
@@ -59,10 +61,12 @@ class CountingWorker:
         if self.__img is None:
             raise CountingWorkerError("Plik nie może być otwarty")
 
+        print(img_path)
+
         pixmap = self.__opencv2pixmap(self.__img)
         window.imagePreviewLeft.setImage(pixmap)
 
-    @repeat(1)
+    @repeat(100)
     def count(self):
         self.__alg_id = self.__window.algorithmCombo.currentIndex()
         
