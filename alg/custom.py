@@ -1,6 +1,5 @@
 from . import *
 from alg.ref import ReferenceAlgorithm
-from scipy import optimize, signal
 
 class CustomHsvBlobAlgorithm(ReferenceAlgorithm):
 
