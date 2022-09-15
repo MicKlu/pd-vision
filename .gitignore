@@ -137,3 +137,4 @@ _utils/*/*.png
 _utils/*/*/*.png
 out
 imgs/test_samples
+imgs/moderate_samples
